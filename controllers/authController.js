@@ -98,11 +98,9 @@ exports.googleCallback = async (req, res) => {
     const { data } = await oauth2.userinfo.get();
 
     let user = await User.findOne({ email: data.email });
-    let isNewUser = false;
 
     if (!user) {
       const referralCode = await User.generateUniqueReferralCode();
-user.referralCode = referralCode;
 
       user = await User.create({ 
         email: data.email,
@@ -136,7 +134,7 @@ user.referralCode = referralCode;
       await user.save();
     }
 
-    // ✅ NEW: Save or Update ConnectedAccount
+    // ✅ Save or Update ConnectedAccount
     try {
       let connectedAccount = await ConnectedAccount.findOne({
         userId: user._id,
@@ -144,7 +142,6 @@ user.referralCode = referralCode;
       });
 
       if (connectedAccount) {
-        // Update existing account
         connectedAccount.accessToken = tokens.access_token;
         connectedAccount.refreshToken = tokens.refresh_token;
         connectedAccount.tokenExpiry = tokens.expiry_date ? new Date(tokens.expiry_date) : null;
@@ -155,11 +152,9 @@ user.referralCode = referralCode;
         await connectedAccount.save();
         logger.info(`✅ Updated connected account: ${data.email}`);
       } else {
-        // Check if user has any accounts (first account is primary)
         const accountCount = await ConnectedAccount.countDocuments({ userId: user._id });
         const isPrimary = accountCount === 0;
 
-        // Create new connected account
         connectedAccount = await ConnectedAccount.create({
           userId: user._id,
           provider: 'gmail',
@@ -173,7 +168,7 @@ user.referralCode = referralCode;
           lastSync: new Date(),
           settings: {
             autoSync: true,
-            syncInterval: 300000, // 5 minutes
+            syncInterval: 300000,
             syncLabels: true,
             syncAttachments: false
           }
@@ -183,11 +178,15 @@ user.referralCode = referralCode;
       }
     } catch (accountError) {
       logger.error('❌ Error saving connected account:', accountError);
-      // Don't fail the login if this fails
     }
 
+    // ✅ Generate JWT token
     const token = generateToken(user._id);
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    
+    // ✅ CORRECT: Pass token in URL
+const frontendUrl = process.env.FRONTEND_URL || 'https://gmail-cleanup-ai.netlify.app';
+res.redirect(`${frontendUrl}?token=${token}`);
+    
   } catch (error) {
     logger.error('Google auth error:', error);
     res.redirect(`${process.env.FRONTEND_URL}/auth/error`);
