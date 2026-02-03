@@ -49,7 +49,9 @@ console.log('✅ Models loaded:', Object.keys(mongoose.models).join(', '));
 app.use(helmet());
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: [
+  'http://localhost:3000',
+  'https://gmail-cleanup-ai.netlify.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -70,14 +72,14 @@ app.use(session({
   saveUninitialized: false,
   name: 'connect.sid',
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === 'production', // ✅ true in production (HTTPS)
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'lax',
-    domain: 'localhost',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // ✅ CRITICAL FIX!
     path: '/'
+    // ❌ Remove domain setting - let browser handle it
   },
-  proxy: false
+  proxy: true // ✅ Trust Render's proxy
 }));
 
 // =====================
