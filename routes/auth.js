@@ -59,11 +59,11 @@ router.get('/google', passport.authenticate('google', {
 // ================================
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: 'http://localhost:3000' }),
+  passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}` }),
   (req, res) => {
     console.log('✅ OAuth successful, user logged in:', req.user.email);
     console.log('🔑 User GoogleId:', req.user.googleId); // ✅ Check if this logs
-    res.redirect('http://localhost:3000?auth=success');
+    res.redirect(`${process.env.FRONTEND_URL}?auth=success`);
   }
 );
 
