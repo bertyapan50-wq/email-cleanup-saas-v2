@@ -88,12 +88,16 @@ class PlanningService {
       logger.error('Smart scheduler failed, falling back to basic algorithm:', smartError);
       
       // Fallback to original algorithm
-      const timeSlots = this.generateTimeSlots(
-        date,
-        workPattern.workHours,
-        workPattern.breaks,
-        workPattern.preferences.bufferTime
-      );
+      const bufferTime =
+  workPattern.preferences?.bufferTime ?? 15;
+
+const timeSlots = this.generateTimeSlots(
+  date,
+  workPattern.workHours,
+  workPattern.breaks,
+  bufferTime
+);
+
       
       // Mark occupied slots
       existingSchedule.forEach(task => {
