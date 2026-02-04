@@ -271,6 +271,7 @@ generateTimeSlots(date, workHours, breaks, bufferTime = 15) {
  */
 async saveSchedule(schedule) {
   const Task = getTask();
+ logger.info('🔥 NEW CODE DEPLOYED - Using findByIdAndUpdate');
   
   for (const item of schedule) {
     // ✅ Use findByIdAndUpdate instead of fetching then saving
