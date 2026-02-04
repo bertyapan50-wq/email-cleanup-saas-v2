@@ -47,11 +47,10 @@ router.get('/google', passport.authenticate('google', {
   scope: [
     'profile',
     'email', 
+     'https://mail.google.com/',  // ✅ FULL ACCESS
     'https://www.googleapis.com/auth/gmail.modify',
     'https://www.googleapis.com/auth/gmail.readonly'
-    'https://www.googleapis.com/auth/gmail.settings.basic',  // 🔹 ADD THIS
-    'https://www.googleapis.com/auth/gmail.settings.sharing' // optional
-
+    
   ],
   accessType: 'offline',    // ✅ CRITICAL - Gets refresh token
   prompt: 'consent'         // ✅ CRITICAL - Forces consent screen
