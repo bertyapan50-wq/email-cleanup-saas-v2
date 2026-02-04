@@ -250,17 +250,11 @@ router.post('/gmail/move', protect, async (req, res) => {
 // ==========================================
 
 // ✅ GET ALL INBOX EMAILS - Used by App.js loadRealEmails()
-router.get('/emails', async (req, res) => {
+outer.get('/emails', protect, async (req, res) => {
   try {
     console.log('📧 GET /api/email/emails called');
     
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
-      console.log('❌ Not authenticated');
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Not authenticated' 
-      });
-    }
+  
     
     if (!req.user || !req.user.googleTokens) {
       console.log('❌ No googleTokens found');

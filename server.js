@@ -49,13 +49,10 @@ console.log('✅ Models loaded:', Object.keys(mongoose.models).join(', '));
 app.use(helmet());
 
 app.use(cors({
-  origin: [
-  'http://localhost:3000',
-  'https://gmail-cleanup-ai.netlify.app'],
+  origin: ['http://localhost:3000', 'https://gmail-cleanup-ai.netlify.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['set-cookie']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json({ limit: '10mb' }));
@@ -101,7 +98,6 @@ app.use((req, res, next) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/beta', require('./routes/beta'));
 app.use('/api/email', require('./routes/email'));  // ← DAGDAG MO ITO!
-app.use('/api/settings', require('./routes/setting')); 
 app.use('/api/filters', require('./routes/filters'));
 app.use('/api/labels', require('./routes/labels'));
 app.use('/api/followups', require('./routes/followups'));

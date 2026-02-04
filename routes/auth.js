@@ -71,6 +71,39 @@ router.get(
 // Get current user
 // ================================
 router.get('/user', async (req, res) => {
+  // ✅ Check for Bearer token first (para sa cross-domain)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.split(' ')[1];
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const User = require('../models/User');
+      const user = await User.findById(decoded.id);
+      
+      if (user) {
+        return res.json({
+          success: true,
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            googleId: user.googleId,
+            subscriptionTier: user.subscriptionTier,
+            subscriptionStatus: user.subscriptionStatus,
+            trialEndDate: user.trialEndDate,
+            trialUsed: user.trialUsed,
+            freeCleanupCount: user.freeCleanupCount,
+            totalCleanupsUsed: user.totalCleanupsUsed
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Token verification failed:', err.message);
+    }
+  }
+
+  // Existing session check — huwag baguhin ang nasa dito pababa
   console.log('📥 GET /api/auth/user');
   console.log('🔐 Is Authenticated:', req.isAuthenticated());
   console.log('👤 User:', req.user);

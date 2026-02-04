@@ -185,7 +185,7 @@ exports.googleCallback = async (req, res) => {
     
     // ✅ CORRECT: Pass token in URL
 const frontendUrl = process.env.FRONTEND_URL || 'https://gmail-cleanup-ai.netlify.app';
-res.redirect(`${frontendUrl}?token=${token}`);
+res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     
   } catch (error) {
     logger.error('Google auth error:', error);

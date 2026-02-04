@@ -187,6 +187,47 @@ router.get('/', protect, async (req, res) => {
     });
   }
 });
+router.get('/notifications/due', protect, async (req, res) => {
+  try {
+    const now = new Date();
+    const userId = getUserId(req.user);
+    
+    const dueFollowUps = await FollowUp.find({
+      userId: userId,
+      status: 'pending',
+      followUpDate: { $lte: now },
+      notified: false
+    })
+    .sort({ priority: -1, followUpDate: 1 })
+    .limit(10);
+
+    // Mark as notified
+    if (dueFollowUps.length > 0) {
+      await FollowUp.updateMany(
+        {
+          _id: { $in: dueFollowUps.map(f => f._id) }
+        },
+        {
+          notified: true
+        }
+      );
+    }
+
+    res.json({
+      success: true,
+      dueFollowUps,
+      count: dueFollowUps.length
+    });
+
+  } catch (error) {
+    console.error('❌ Get due follow-ups error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch due follow-ups',
+      details: error.message
+    });
+  }
+});
 
 // =====================
 // GET single follow-up - FIXED
@@ -347,49 +388,6 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
-// =====================
-// GET due follow-ups (for notifications) - FIXED
-// =====================
-router.get('/notifications/due', protect, async (req, res) => {
-  try {
-    const now = new Date();
-    const userId = getUserId(req.user);
-    
-    const dueFollowUps = await FollowUp.find({
-      userId: userId,
-      status: 'pending',
-      followUpDate: { $lte: now },
-      notified: false
-    })
-    .sort({ priority: -1, followUpDate: 1 })
-    .limit(10);
 
-    // Mark as notified
-    if (dueFollowUps.length > 0) {
-      await FollowUp.updateMany(
-        {
-          _id: { $in: dueFollowUps.map(f => f._id) }
-        },
-        {
-          notified: true
-        }
-      );
-    }
-
-    res.json({
-      success: true,
-      dueFollowUps,
-      count: dueFollowUps.length
-    });
-
-  } catch (error) {
-    console.error('❌ Get due follow-ups error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch due follow-ups',
-      details: error.message
-    });
-  }
-});
 
 module.exports = router;
