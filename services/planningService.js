@@ -273,15 +273,18 @@ async saveSchedule(schedule) {
   const Task = getTask();
   
   for (const item of schedule) {
-    // ✅ Fetch the actual Mongoose document
-    const task = await Task.findById(item.task._id || item.task.id);
-    
-    if (task) {
-      task.scheduledTime = item.scheduledTime;
-      task.status = 'scheduled';
-      await task.save();
-    }
+    // ✅ Use findByIdAndUpdate instead of fetching then saving
+    await Task.findByIdAndUpdate(
+      item.task._id,
+      {
+        scheduledTime: item.scheduledTime,
+        status: 'scheduled'
+      },
+      { new: true }
+    );
   }
+  
+  logger.info(`✅ Saved ${schedule.length} tasks to database`);
 }
 
   /**
