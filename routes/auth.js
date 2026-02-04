@@ -479,6 +479,20 @@ router.get('/reauth', (req, res) => {
 });
 
 
-
+router.post('/force-logout-all', async (req, res) => {
+  try {
+    const User = require('../models/User');
+    await User.updateMany({}, { 
+      $unset: { 
+        googleTokens: "",
+        accessToken: "",
+        refreshToken: ""
+      } 
+    });
+    res.json({ success: true, message: 'All tokens cleared' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 module.exports = router;
