@@ -406,4 +406,4 @@ async saveSchedule(schedule) {
   }
 }
 
-module.exports = new PlanningService();
+module.exports = new PlanningService(); 
