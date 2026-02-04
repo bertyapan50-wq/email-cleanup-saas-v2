@@ -471,13 +471,13 @@ router.post('/archive-emails', async (req, res) => {
 // ================================
 router.get('/reauth', (req, res) => {
   if (!req.isAuthenticated()) {
-    // Redirect user to login page if not logged in
     return res.redirect(`${process.env.FRONTEND_URL}?auth=login`);
   }
 
-  // Trigger Google OAuth consent screen again
-  res.redirect('/api/auth/google');
+  // ✅ Use full backend URL for Google OAuth
+  res.redirect(`${process.env.BACKEND_URL}/api/auth/google`);
 });
+
 
 
 module.exports = router;
