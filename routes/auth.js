@@ -466,9 +466,7 @@ router.post('/archive-emails', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to archive emails', error: error.message });
   }
 });
-// ================================
 // 🔄 Re-authenticate / Reconnect Gmail
-// ================================
 router.get('/reauth', (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect(`${process.env.FRONTEND_URL}?auth=login`);
@@ -477,6 +475,7 @@ router.get('/reauth', (req, res) => {
   // ✅ Use full backend URL for Google OAuth
   res.redirect(`${process.env.BACKEND_URL}/api/auth/google`);
 });
+
 
 
 
