@@ -267,15 +267,22 @@ generateTimeSlots(date, workHours, breaks, bufferTime = 15) {
   }
 
   /**
-   * Save scheduled tasks
-   */
-  async saveSchedule(schedule) {
-    for (const item of schedule) {
-      item.task.scheduledTime = item.scheduledTime;
-      item.task.status = 'scheduled';
-      await item.task.save();
+ * Save scheduled tasks
+ */
+async saveSchedule(schedule) {
+  const Task = getTask();
+  
+  for (const item of schedule) {
+    // ✅ Fetch the actual Mongoose document
+    const task = await Task.findById(item.task._id || item.task.id);
+    
+    if (task) {
+      task.scheduledTime = item.scheduledTime;
+      task.status = 'scheduled';
+      await task.save();
     }
   }
+}
 
   /**
    * Reschedule a single task
