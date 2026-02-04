@@ -49,6 +49,9 @@ router.get('/google', passport.authenticate('google', {
     'email', 
     'https://www.googleapis.com/auth/gmail.modify',
     'https://www.googleapis.com/auth/gmail.readonly'
+    'https://www.googleapis.com/auth/gmail.settings.basic',  // 🔹 ADD THIS
+    'https://www.googleapis.com/auth/gmail.settings.sharing' // optional
+
   ],
   accessType: 'offline',    // ✅ CRITICAL - Gets refresh token
   prompt: 'consent'         // ✅ CRITICAL - Forces consent screen
