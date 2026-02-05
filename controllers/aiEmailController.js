@@ -1,11 +1,8 @@
-// ✅ CORRECT: Use node-fetch for Node.js
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
 const generateEmail = async (req, res) => {
   try {
-    const { prompt, tone = 'professional', context } = req.body;
+    console.log('🤖 [AI EMAIL] Generate endpoint called');
     
-    console.log('🤖 AI Email Generate Request:', { prompt, tone, context }); // ✅ Debug log
+    const { prompt, tone = 'professional', context } = req.body;
     
     if (!prompt) {
       return res.status(400).json({ 
@@ -14,16 +11,14 @@ const generateEmail = async (req, res) => {
       });
     }
 
-    // Check if GROQ_API_KEY exists
     if (!process.env.GROQ_API_KEY) {
-      console.error('❌ GROQ_API_KEY not set in environment variables');
+      console.error('❌ GROQ_API_KEY not configured');
       return res.status(500).json({
         success: false,
-        error: 'AI service not configured. Please contact administrator.'
+        error: 'AI service not configured'
       });
     }
 
-    // System prompts based on tone
     const tonePrompts = {
       professional: 'You are a professional business email writer. Write clear, concise, and formal emails.',
       casual: 'You are a friendly email writer. Write warm, conversational emails while maintaining professionalism.',
@@ -34,9 +29,8 @@ const generateEmail = async (req, res) => {
 
     const systemPrompt = tonePrompts[tone] || tonePrompts.professional;
 
-    console.log('📡 Calling Groq API...'); // ✅ Debug log
+    console.log('📡 Calling Groq API...');
 
-    // Call Groq API
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -44,11 +38,11 @@ const generateEmail = async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'mixtral-8x7b-32768',
+        model: 'llama-3.3-70b-versatile', // ✅ UPDATED MODEL!
         messages: [
           {
             role: 'system',
-            content: systemPrompt + ' Always include a subject line at the start in format "Subject: [subject]"'
+            content: systemPrompt + ' Always start emails with "Subject: [subject line]" followed by the email body.'
           },
           {
             role: 'user',
@@ -58,44 +52,34 @@ const generateEmail = async (req, res) => {
           }
         ],
         temperature: 0.7,
-        max_tokens: 800,
-        top_p: 1,
-        stream: false
+        max_tokens: 800
       })
     });
 
     const data = await response.json();
-    
-    console.log('✅ Groq API Response Status:', response.status); // ✅ Debug log
 
     if (!response.ok) {
-      console.error('❌ Groq API Error:', data);
+      console.error('❌ Groq API error:', data);
       throw new Error(data.error?.message || 'AI generation failed');
     }
 
     const generatedEmail = data.choices[0].message.content;
-
-    // Parse subject and body
     const subjectMatch = generatedEmail.match(/Subject:\s*(.+?)(?:\n|$)/i);
-    const subject = subjectMatch ? subjectMatch[1].trim() : '';
+    const subject = subjectMatch ? subjectMatch[1].trim() : 'No Subject';
     const body = generatedEmail.replace(/Subject:\s*.+?(?:\n|$)/i, '').trim();
 
-    console.log('✅ Email generated successfully'); // ✅ Debug log
+    console.log('✅ Email generated successfully');
 
     res.json({
       success: true,
-      email: {
-        subject,
-        body,
-        full: generatedEmail
-      }
+      email: { subject, body, full: generatedEmail }
     });
 
   } catch (error) {
-    console.error('❌ AI Email Generation Error:', error);
+    console.error('❌ Generate email error:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to generate email. Please try again.'
+      error: error.message || 'Failed to generate email'
     });
   }
 };
@@ -125,7 +109,7 @@ const improveEmail = async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'mixtral-8x7b-32768',
+        model: 'llama-3.3-70b-versatile', // ✅ UPDATED MODEL!
         messages: [
           {
             role: 'system',
@@ -153,15 +137,12 @@ const improveEmail = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ AI Email Improvement Error:', error);
+    console.error('❌ Improve email error:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to improve email. Please try again.'
+      error: error.message || 'Failed to improve email'
     });
   }
 };
 
-module.exports = {
-  generateEmail,
-  improveEmail
-};
+module.exports = { generateEmail, improveEmail };
