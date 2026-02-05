@@ -112,6 +112,7 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/planning', require('./routes/planning'));
 app.use('/api/activity', require('./routes/activity')); // ✅ NEW: Activity logging routes
+app.use('/api/ai-email', require('./routes/aiEmail'));
 
 console.log('✅ All routes mounted successfully');
 
