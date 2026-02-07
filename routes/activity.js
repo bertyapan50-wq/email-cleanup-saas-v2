@@ -21,7 +21,8 @@ router.get('/stats', isAuthenticated, activityController.getActivityStats);
 router.post('/', isAuthenticated, async (req, res) => {
   try {
     const { action, description, details, status } = req.body;
-    const Activity = require('../models/Activity');
+    const mongoose = require('mongoose');
+const Activity = mongoose.model('Activity');
     
     console.log('📝 Logging activity:', { action, description, userId: req.user._id });
     
@@ -61,7 +62,8 @@ router.post('/', isAuthenticated, async (req, res) => {
 router.post('/log', isAuthenticated, async (req, res) => {
   try {
     const { type, description, metadata } = req.body;
-    const Activity = require('../models/Activity');
+    const mongoose = require('mongoose');
+const Activity = mongoose.model('Activity');
     
     const activity = await Activity.create({
       userId: req.user._id,
