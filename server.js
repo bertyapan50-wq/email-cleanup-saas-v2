@@ -71,11 +71,10 @@ app.use(session({
   saveUninitialized: false,
   name: 'connect.sid',
   
-  // ✅ USE MONGODB TO STORE SESSIONS
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    touchAfter: 24 * 3600
-  }),
+  store: new MongoStore({
+  mongoUrl: process.env.MONGODB_URI,
+  touchAfter: 24 * 3600
+}),
   
   cookie: {
     secure: true,           // ✅ ALWAYS true
