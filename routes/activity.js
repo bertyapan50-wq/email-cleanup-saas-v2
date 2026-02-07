@@ -15,6 +15,45 @@ router.get('/', isAuthenticated, activityController.getActivityLogs);
 // @access  Private
 router.get('/stats', isAuthenticated, activityController.getActivityStats);
 
+
+// ✅✅✅ ADD THIS NEW CODE HERE ✅✅✅
+// POST /api/activity (NEW - for frontend)
+router.post('/', isAuthenticated, async (req, res) => {
+  try {
+    const { action, description, details, status } = req.body;
+    const Activity = require('../models/Activity');
+    
+    console.log('📝 Logging activity:', { action, description, userId: req.user._id });
+    
+    const activity = await Activity.create({
+      userId: req.user._id,
+      action,
+      description,
+      details: details || {},
+      status: status || 'success',
+      timestamp: new Date()
+    });
+    
+    console.log('✅ Activity saved:', activity._id);
+    
+    res.json({ 
+      success: true, 
+      activity: {
+        id: activity._id,
+        action: activity.action,
+        description: activity.description,
+        timestamp: activity.timestamp
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error logging activity:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // ✅ TEMPORARY: Inline function for testing
 // @desc    Log a new activity
 // @route   POST /api/activity/log

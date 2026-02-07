@@ -63,20 +63,29 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // =====================
 // Session (before Passport)
 // =====================
+const MongoStore = require('connect-mongo');  // ← NEW!
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gmail_cleanup_secret_key',
   resave: false,
   saveUninitialized: false,
   name: 'connect.sid',
+  
+  // ✅ USE MONGODB TO STORE SESSIONS
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    touchAfter: 24 * 3600
+  }),
+  
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // ✅ true in production (HTTPS)
+    secure: true,           // ✅ ALWAYS true
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // ✅ CRITICAL FIX!
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: 'none',       // ✅ ALWAYS 'none'
     path: '/'
-    // ❌ Remove domain setting - let browser handle it
   },
-  proxy: true // ✅ Trust Render's proxy
+  
+  proxy: true
 }));
 
 // =====================
