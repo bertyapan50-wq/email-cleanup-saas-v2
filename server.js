@@ -63,7 +63,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // =====================
 // Session (before Passport)
 // =====================
-const MongoStore = require('connect-mongo');  // ← NEW!
+const MongoStore = require('connect-mongo');
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gmail_cleanup_secret_key',
@@ -71,17 +71,17 @@ app.use(session({
   saveUninitialized: false,
   name: 'connect.sid',
   
-  // ✅ USE MONGODB TO STORE SESSIONS
+  // ✅ CORRECT syntax for connect-mongo v6
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
+    client: mongoose.connection.getClient(),
     touchAfter: 24 * 3600
   }),
   
   cookie: {
-    secure: true,           // ✅ ALWAYS true
+    secure: true,
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: 'none',       // ✅ ALWAYS 'none'
+    sameSite: 'none',
     path: '/'
   },
   
