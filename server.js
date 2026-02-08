@@ -73,7 +73,7 @@ app.use(session({
   
   // ✅ CORRECT syntax for connect-mongo v6
   store: MongoStore.create({
-    client: mongoose.connection.getClient(),
+    mongoUrl: process.env.MONGODB_URI,
     touchAfter: 24 * 3600
   }),
   
