@@ -66,9 +66,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const { MongoStore } = require('connect-mongo');
 
 
-console.log('🔍 DEBUG MongoStore type:', typeof MongoStore);
-console.log('🔍 DEBUG MongoStore.create type:', typeof MongoStore.create);
-console.log('🔍 DEBUG MongoStore keys:', Object.keys(MongoStore));
+
 
 
 app.use(session({

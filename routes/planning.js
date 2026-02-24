@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const planningController = require('../controllers/planningController');
 const auth = require('../middleware/auth');
-const { requirePremium } = require('../middleware/subscription'); // Add this
+// const { requirePremium } = require('../middleware/subscription'); // ✅ REMOVED
 
-// All routes require authentication AND premium
+// All routes require authentication only (no premium check)
 router.use(auth);
-router.use(requirePremium); // Add this - blocks all non-premium users
+// router.use(requirePremium); // ✅ REMOVED - Auto Planner is now FREE!
 
 // Planning
 router.post('/generate-plan', planningController.generatePlan);

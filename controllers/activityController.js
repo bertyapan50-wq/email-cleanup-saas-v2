@@ -75,7 +75,40 @@ exports.getActivityLogs = async (req, res) => {
   }
 };
 
-// Log an activity (internal use)
+// ✅ NEW: API endpoint to log activity
+exports.logActivityAPI = async (req, res) => {
+  try {
+    const { type, description, metadata } = req.body;
+    const userId = req.user._id;
+    
+    const activityData = {
+      userId,
+      action: type || 'general_action',
+      description: description || 'Activity logged',
+      details: metadata || {},
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      userAgent: req.get('user-agent'),
+      timestamp: new Date()
+    };
+
+    const activity = await Activity.create(activityData);
+    
+    logger.info(`✅ Activity logged: ${type} for user ${userId}`);
+    
+    res.json({
+      success: true,
+      activity
+    });
+  } catch (error) {
+    logger.error('❌ Log activity error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to log activity' 
+    });
+  }
+};
+
+// Log an activity (internal use - keep original for backward compatibility)
 exports.logActivity = async (userId, action, description, details = {}, req = null) => {
   try {
     const activityData = {

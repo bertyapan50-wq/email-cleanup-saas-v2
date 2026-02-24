@@ -1437,7 +1437,67 @@ router.post('/reply', protect, async (req, res) => {
     });
   }
 });
+// ==========================================
+// ✅ SEND NEW EMAIL - AI Email Composer
+// ==========================================
+router.post('/send', protect, async (req, res) => {
+  try {
+    console.log('📤 POST /api/email/send called');
 
+    if (!req.user || !req.user.googleTokens) {
+      return res.status(401).json({ success: false, error: 'Not authenticated' });
+    }
+
+    const { to, subject, body } = req.body;
+
+    if (!to || !subject || !body) {
+      return res.status(400).json({ success: false, error: 'Missing to, subject, or body' });
+    }
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    oauth2Client.setCredentials({
+      access_token: req.user.googleTokens.access_token,
+      refresh_token: req.user.googleTokens.refresh_token,
+      expiry_date: req.user.googleTokens.expiry_date
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    const userEmail = profile.data.emailAddress;
+
+    const rawMessage = [
+      `From: ${userEmail}`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      `Content-Type: text/plain; charset="UTF-8"`,
+      ``,
+      body
+    ].join('\n');
+
+    const encodedMessage = Buffer.from(rawMessage)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: { raw: encodedMessage }
+    });
+
+    console.log(`✅ Email sent to ${to}`);
+    res.json({ success: true, message: `Email sent to ${to}` });
+
+  } catch (error) {
+    console.error('❌ Error sending email:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 // ==========================================
 // ✅ GET SINGLE EMAIL FULL CONTENT - FOR INBOXVIEW
 // ==========================================
@@ -1892,6 +1952,7 @@ router.post('/trash/empty', protect, async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
 
 
 module.exports = router;
