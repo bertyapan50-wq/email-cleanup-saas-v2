@@ -534,58 +534,7 @@ router.get('/drafts', protect, async (req, res) => {
       refresh_token: req.user.googleTokens.refresh_token,
       expiry_date: req.user.googleTokens.expiry_date
     });
-// ==========================================
-// ✅ DELETE DRAFT
-// ==========================================
-router.delete('/drafts/:draftId', protect, async (req, res) => {
-  try {
-    console.log(`🗑️ DELETE /api/email/drafts/${req.params.draftId}`);
-    
-    if (!req.user || !req.user.googleTokens) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Not authenticated' 
-      });
-    }
 
-    const { draftId } = req.params;
-
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
-    );
-    oauth2Client.setCredentials({
-      access_token: req.user.googleTokens.access_token,
-      refresh_token: req.user.googleTokens.refresh_token,
-      expiry_date: req.user.googleTokens.expiry_date
-    });
-
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-
-    console.log('🗑️ Deleting draft from Gmail...');
-
-    // Delete the draft
-    await gmail.users.drafts.delete({
-      userId: 'me',
-      id: draftId
-    });
-
-    console.log(`✅ Draft ${draftId} deleted successfully`);
-
-    res.json({
-      success: true,
-      message: 'Draft deleted successfully'
-    });
-
-  } catch (error) {
-    console.error('❌ Error deleting draft:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
 
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
@@ -657,6 +606,61 @@ router.delete('/drafts/:draftId', protect, async (req, res) => {
     });
   }
 });
+
+// ==========================================
+// ✅ DELETE DRAFT
+// ==========================================
+router.delete('/drafts/:draftId', protect, async (req, res) => {
+  try {
+    console.log(`🗑️ DELETE /api/email/drafts/${req.params.draftId}`);
+    
+    if (!req.user || !req.user.googleTokens) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Not authenticated' 
+      });
+    }
+
+    const { draftId } = req.params;
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    oauth2Client.setCredentials({
+      access_token: req.user.googleTokens.access_token,
+      refresh_token: req.user.googleTokens.refresh_token,
+      expiry_date: req.user.googleTokens.expiry_date
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    console.log('🗑️ Deleting draft from Gmail...');
+
+    // Delete the draft
+    await gmail.users.drafts.delete({
+      userId: 'me',
+      id: draftId
+    });
+
+    console.log(`✅ Draft ${draftId} deleted successfully`);
+
+    res.json({
+      success: true,
+      message: 'Draft deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting draft:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
 // ✅ AI SUGGESTIONS - Analyze and recommend top emails
 router.post('/suggestions/analyze', protect, async (req, res) => {
   try {
