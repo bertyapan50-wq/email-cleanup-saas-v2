@@ -4,11 +4,16 @@ const logger = require('../utils/logger');
 
 class GmailService {
   async getGmailClient(tokens) {
-  oauth2Client.setCredentials({
+  const oauth2 = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
+  );
+  oauth2.setCredentials({
     access_token: tokens.access_token || tokens,
     refresh_token: tokens.refresh_token || null
   });
-  return google.gmail({ version: 'v1', auth: oauth2Client });
+  return google.gmail({ version: 'v1', auth: oauth2 });
 }
 
   async fetchEmails(refreshToken, maxResults = 50) {
