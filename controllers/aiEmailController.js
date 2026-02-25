@@ -128,8 +128,9 @@ const broadcastEmails = async (req, res) => {
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ success: false, error: 'AI service not configured' });
     }
-     if (!req.user?.googleTokens?.refresh_token) {
+     if (!req.user?.googleTokens?.access_token) {
   return res.status(401).json({ success: false, error: 'Gmail not connected' });
+
 }
     const toneGuides = {
       professional: 'professional, formal, and respectful',
@@ -212,9 +213,9 @@ Make it feel personal and genuine to ${recipientName}.`;
     console.log(`📨 Sending ${readyToSend.length} emails via Gmail...`);
 
     const broadcastResult = await gmailService.sendBroadcast(
-      req.user.googleTokens.refresh_token,
-      readyToSend
-    );
+  req.user.googleTokens,
+  readyToSend
+);
 
     // ── Step 4: Build response ──
     const response = {
