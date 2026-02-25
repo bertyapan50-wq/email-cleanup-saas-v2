@@ -3,7 +3,7 @@ const { google } = require('googleapis');
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-   process.env.GOOGLE_CALLBACK_URL
+  process.env.GOOGLE_CALLBACK_URL
 );
 
 const getAuthUrl = () => {
@@ -14,7 +14,8 @@ const getAuthUrl = () => {
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/gmail.readonly',
       'https://www.googleapis.com/auth/gmail.modify',
-      'https://www.googleapis.com/auth/gmail.settings.basic'  // ✅ ADDED: Para sa filter creation
+      'https://www.googleapis.com/auth/gmail.settings.basic',
+      'https://www.googleapis.com/auth/gmail.send'  // ✅ IDAGDAG ITO
     ],
     prompt: 'consent'
   });

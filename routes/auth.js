@@ -12,8 +12,8 @@ async function getGmailClientWithRefresh(user) {
   );
 
   oauth2Client.setCredentials({
-    access_token: user.accessToken,
-    refresh_token: user.refreshToken
+    access_token: user.googleTokens?.access_token,
+refresh_token: user.googleTokens?.refresh_token
   });
 
   // ✅ Set up automatic token refresh
@@ -52,7 +52,7 @@ router.get('/google', passport.authenticate('google', {
     'https://www.googleapis.com/auth/gmail.readonly'
     
   ],
-  accessType: 'offline',    // ✅ CRITICAL - Gets refresh token
+  access_type: 'offline',    // ✅ CRITICAL - Gets refresh token
   prompt: 'consent'         // ✅ CRITICAL - Forces consent screen
 }));
 
