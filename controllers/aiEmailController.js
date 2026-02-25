@@ -164,7 +164,8 @@ Rules:
 - Do not include placeholders like [Name] in the final output
 - Output ONLY the Subject line and email body. Nothing else.
 - Do NOT add any notes, explanations, or meta-commentary after the email.
-- End the email naturally with a sign-off. Do not add anything after it.`;
+- End the email naturally with a sign-off. Do not add anything after it.
+- Never use placeholders like [platform], [industry], or [field]. Use actual specific details from the context provided, or write naturally without them.`;
 
       const userPrompt = `Write a personalized email to ${recipientName} (${email}).
 ${recipientContext ? `About this person: ${recipientContext}` : ''}
