@@ -161,7 +161,8 @@ Subject: [subject here]
 Rules:
 - Address the recipient by name naturally
 - Keep it authentic, not template-like
-- Do not include placeholders like [Name] in the final output`;
+- Do not include placeholders like [Name] in the final output
+- Output ONLY the Subject line and email body. Nothing else.`;
 
       const userPrompt = `Write a personalized email to ${recipientName} (${email}).
 ${recipientContext ? `About this person: ${recipientContext}` : ''}
