@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateEmail, improveEmail } = require('../controllers/aiEmailController');
+const { generateEmail, improveEmail, broadcastEmails, previewBroadcast } = require('../controllers/aiEmailController');
 const auth = require('../middleware/auth');
 
 // Generate email from prompt
