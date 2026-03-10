@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
+const { requirePremium } = require('../middleware/subscription');
 const mongoose = require('mongoose');
 
 // =====================
@@ -66,7 +66,7 @@ const getUserId = (user) => {
 // =====================
 // CREATE follow-up - FIXED
 // =====================
-router.post('/create', protect, async (req, res) => {
+router.post('/create', protect, requirePremium, async (req, res) => {
   try {
     console.log('📝 CREATE FOLLOW-UP called');
     console.log('🔍 User:', {
@@ -130,7 +130,7 @@ router.post('/create', protect, async (req, res) => {
 // =====================
 // GET all follow-ups for user - FIXED
 // =====================
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, requirePremium, async (req, res) => {
   try {
     const { status, priority } = req.query;
     
@@ -187,7 +187,7 @@ router.get('/', protect, async (req, res) => {
     });
   }
 });
-router.get('/notifications/due', protect, async (req, res) => {
+router.get('/notifications/due', protect, requirePremium, async (req, res) => {
   try {
     const now = new Date();
     const userId = getUserId(req.user);
@@ -232,7 +232,7 @@ router.get('/notifications/due', protect, async (req, res) => {
 // =====================
 // GET single follow-up - FIXED
 // =====================
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, requirePremium, async (req, res) => {
   try {
     const userId = getUserId(req.user);
     
@@ -266,7 +266,7 @@ router.get('/:id', protect, async (req, res) => {
 // =====================
 // UPDATE follow-up - FIXED
 // =====================
-router.put('/:id', protect, async (req, res) => {
+router.put('/:id', protect, requirePremium, async (req, res) => {
   try {
     const { followUpDate, notes, priority, status } = req.body;
     const userId = getUserId(req.user);
@@ -312,7 +312,7 @@ router.put('/:id', protect, async (req, res) => {
 // =====================
 // MARK as completed - FIXED
 // =====================
-router.patch('/:id/complete', protect, async (req, res) => {
+router.patch('/:id/complete', protect, requirePremium, async (req, res) => {
   try {
     const userId = getUserId(req.user);
     
@@ -355,7 +355,7 @@ router.patch('/:id/complete', protect, async (req, res) => {
 // =====================
 // DELETE follow-up - FIXED
 // =====================
-router.delete('/:id', protect, async (req, res) => {
+router.delete('/:id', protect, requirePremium, async (req, res) => {
   try {
     const userId = getUserId(req.user);
     

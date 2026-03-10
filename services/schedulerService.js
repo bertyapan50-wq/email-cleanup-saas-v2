@@ -55,9 +55,23 @@ class SchedulerService {
       const User = require('../models/User');
       user = await User.findById(schedule.userId);
       
-      if (!user || !user.googleTokens) {
-        throw new Error('User not found or not authenticated with Google');
-      }
+      if (!user) {
+  console.warn(`⚠️ Skipping schedule ${schedule._id} — user not found`);
+  await this.updateScheduleAfterRun(schedule, 0);
+  return;
+}
+
+if (!user) {
+  console.warn(`⚠️ Skipping — user not found for schedule ${schedule._id}`);
+  await this.updateScheduleAfterRun(schedule, 0);
+  return;
+}
+
+if (!user.googleTokens || !user.googleTokens.refresh_token) {
+  console.warn(`⚠️ Skipping — ${user.email} has no Google tokens, needs to re-authenticate`);
+  await this.updateScheduleAfterRun(schedule, 0);
+  return;
+}
 
       // ✅ Fetch emails from Gmail
       const gmailService = require('./gmailService');
