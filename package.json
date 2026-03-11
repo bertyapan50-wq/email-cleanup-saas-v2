@@ -23,6 +23,7 @@
     "googleapis": "^128.0.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
+    "lemonsqueezy": "^0.0.1-claimed",
     "mongodb": "^7.0.0",
     "mongoose": "^7.8.2",
     "multer": "^2.0.2",

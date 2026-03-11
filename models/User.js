@@ -60,6 +60,9 @@ const userSchema = new mongoose.Schema({
   paymongoSubscriptionId: String,
   paymongoPaymentMethodId: String,
   paymongoCheckoutSessionId: String,
+  lemonSqueezyCustomerId: String,
+lemonSqueezySubscriptionId: String,
+lemonSqueezyOrderId: String,
   
   // Google OAuth tokens (for email access)
   googleTokens: {

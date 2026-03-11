@@ -126,6 +126,7 @@ app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/planning', require('./routes/planning'));
 app.use('/api/activity', require('./routes/activity')); // ✅ NEW: Activity logging routes
 app.use('/api/ai-email', require('./routes/aiEmail'));
+app.use('/api/lemonsqueezy', require('./routes/lemonsqueezy'));
 
 console.log('✅ All routes mounted successfully');
 

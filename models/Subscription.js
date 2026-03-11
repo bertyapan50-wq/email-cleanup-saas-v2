@@ -17,7 +17,7 @@ const paymentHistorySchema = new mongoose.Schema({
 const subscriptionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   plan: { type: String, enum: ['free', 'pro', 'premium', 'enterprise'], required: true },
-  provider: { type: String, enum: ['stripe', 'paymongo', 'paypal', 'free'], default: 'free' },
+  provider: { type: String, enum: ['stripe', 'paymongo', 'paypal', 'lemonsqueezy', 'free'], default: 'free' },
   
   // Payment provider IDs
   subscriptionId: String,
