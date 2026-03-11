@@ -49,7 +49,7 @@ console.log('✅ Models loaded:', Object.keys(mongoose.models).join(', '));
 app.use(helmet());
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://inboxdetox.netlify.app'],
+origin: ['http://localhost:3000', 'https://gmail-cleanup-ai.netlify.app', 'https://inboxdetox.netlify.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -126,6 +126,7 @@ app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/planning', require('./routes/planning'));
 app.use('/api/activity', require('./routes/activity')); // ✅ NEW: Activity logging routes
 app.use('/api/ai-email', require('./routes/aiEmail'));
+app.use('/api/lemonsqueezy', require('./routes/lemonsqueezy'));
 
 console.log('✅ All routes mounted successfully');
 

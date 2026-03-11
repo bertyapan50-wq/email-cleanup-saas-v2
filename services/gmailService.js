@@ -119,6 +119,11 @@ class GmailService {
   // ✅ Get inbox emails (for scheduler)
   async getInboxEmails(tokens, maxResults = 100) {
     try {
+if (!tokens || !tokens.refresh_token) {
+        logger.warn('getInboxEmails called with missing tokens — skipping');
+        return [];
+      }
+
       const gmail = await this.getGmailClient(tokens.refresh_token);
       const response = await gmail.users.messages.list({
         userId: 'me',

@@ -8,12 +8,12 @@ console.log('📊 Loading activity routes...');
 // @desc    Get user's activity logs
 // @route   GET /api/activity
 // @access  Private
-router.get('/', isAuthenticated, activityController.getActivityLogs);
+router.get('/', isAuthenticated, requirePremium, activityController.getActivityLogs);
 
 // @desc    Get activity stats
 // @route   GET /api/activity/stats
 // @access  Private
-router.get('/stats', isAuthenticated, activityController.getActivityStats);
+router.get('/stats', isAuthenticated, requirePremium, activityController.getActivityStats);
 
 
 // ✅✅✅ ADD THIS NEW CODE HERE ✅✅✅

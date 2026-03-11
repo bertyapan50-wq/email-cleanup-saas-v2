@@ -86,6 +86,7 @@ exports.checkEmailQuota = async (req, res, next) => {
 exports.requirePremium = async (req, res, next) => {
   try {
     const user = req.user;
+console.log('🔒 REQUIRE PREMIUM CHECK - email:', user?.email, '| tier:', user?.subscriptionTier);
     
     // ✅ ENHANCED: Include trial check
     const isPremium = user.subscriptionTier === 'premium' || 
