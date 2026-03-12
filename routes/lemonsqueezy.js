@@ -532,3 +532,4 @@ router.post('/webhook', async (req, res) => {
 
 module.exports = router; 
 "" 
+console.log("LEMONSQUEEZY V2 LOADED " + new Date().toISOString()); 
