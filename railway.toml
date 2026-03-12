@@ -3,3 +3,10 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "npm run start"
+
+[build]
+builder = "nixpacks"
+buildCommand = "npm ci"
+
+[deploy]
+startCommand = "npm run start"
