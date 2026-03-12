@@ -90,6 +90,10 @@ async function activateUserReferral(userId) {
 // =====================
 router.post('/create-checkout', protect, async (req, res) => {
   try {
+    console.log('🔍 Create checkout called');
+    console.log('🔍 req.user:', req.user?.email);
+    console.log('🔍 req.body:', req.body);
+
     const { billingCycle = 'monthly' } = req.body;
 
     if (!['monthly', 'annual'].includes(billingCycle)) {
