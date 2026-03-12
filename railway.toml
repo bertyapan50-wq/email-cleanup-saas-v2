@@ -4,3 +4,6 @@ dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "npm run start"
+
+[build]
+builder = "nixpacks"
