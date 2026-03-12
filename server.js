@@ -60,6 +60,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.use('/api/lemonsqueezy/webhook', express.raw({ type: 'application/json' }));
+
 // =====================
 // Session (before Passport)
 // =====================
