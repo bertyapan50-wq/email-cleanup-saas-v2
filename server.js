@@ -147,15 +147,6 @@ try {
 
 console.log('✅ All routes mounted successfully');
 
-try {
-  const lsRouter = require('./routes/lemonsqueezy');
-  app.use('/api/lemonsqueezy', lsRouter);
-  console.log('✅ LemonSqueezy router mounted');
-} catch (err) {
-  console.error('❌ FAILED TO LOAD LEMONSQUEEZY ROUTER:', err.message);
-}
-
-console.log('✅ All routes mounted successfully');
 
 // =====================
 // Health Check
