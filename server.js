@@ -1,4 +1,5 @@
 console.log("🔥 SERVER.JS FILE LOADED");
+console.log("🔥 BUILD TIMESTAMP:", new Date().toISOString());
 
 require('dotenv').config();
 const express = require('express');
