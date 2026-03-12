@@ -1,5 +1,4 @@
-console.log("🔥 SERVER.JS FILE LOADED - VERSION 999");
-console.log("🔥 BUILD TIMESTAMP:", new Date().toISOString());
+console.log("🔥 SERVER.JS FILE LOADED");
 
 require('dotenv').config();
 const express = require('express');
@@ -50,21 +49,20 @@ console.log('✅ Models loaded:', Object.keys(mongoose.models).join(', '));
 app.use(helmet());
 
 app.use(cors({
+<<<<<<< HEAD
   origin: ['http://localhost:3000', 'https://gmail-cleanup-ai.netlify.app', 'https://inboxdetox.netlify.app'],
+=======
+origin: ['http://localhost:3000', 'https://gmail-cleanup-ai.netlify.app', 'https://inboxdetox.netlify.app'],
+>>>>>>> 0cc4553a9e3a96acd13ef280a34e5e73b5b53a3f
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-
-app.use((req, res, next) => {
-  if (req.originalUrl === '/api/lemonsqueezy/webhook') {
-    express.raw({ type: 'application/json' })(req, res, next);
-  } else {
-    express.json({ limit: '10mb' })(req, res, next);
-  }
-});
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // =====================
 // Session (before Passport)
@@ -132,25 +130,9 @@ app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/planning', require('./routes/planning'));
 app.use('/api/activity', require('./routes/activity')); // ✅ NEW: Activity logging routes
 app.use('/api/ai-email', require('./routes/aiEmail'));
-
-app.get('/api/lemonsqueezy/ping', (req, res) => {
-  console.log('🏓 PING HIT!');
-  return res.status(200).json({ ok: true });
-});
-
-try {
-  console.log('⏳ Loading lemonsqueezy router...');
-  const lsRouter = require('./routes/lemonsqueezy');
-  console.log('📦 Router loaded, mounting...');
-  app.use('/api/lemonsqueezy', lsRouter);
-  console.log('✅ LemonSqueezy router mounted');
-} catch (err) {
-  console.error('❌ FAILED TO LOAD LEMONSQUEEZY ROUTER:', err.message);
-  console.error('❌ STACK:', err.stack);
-}
+app.use('/api/lemonsqueezy', require('./routes/lemonsqueezy'));
 
 console.log('✅ All routes mounted successfully');
-
 
 // =====================
 // Health Check
@@ -226,4 +208,3 @@ app.listen(PORT, () => {
     console.log('⚠️ Server will continue without auto-cleanup scheduler');
   }
 });
-"" 

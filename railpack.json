@@ -1,5 +1,15 @@
 {
+<<<<<<< HEAD
+  "buildSecrets": ["LEMONSQUEEZY_API_KEY"]
+=======
   "build": {
-    "secrets": []
+    "buildArgs": {
+      "LEMONSQUEEZY_API_KEY": "",
+      "LEMONSQUEEZY_STORE_ID": "",
+      "LEMONSQUEEZY_MONTHLY_VARIANT_ID": "",
+      "LEMONSQUEEZY_ANNUAL_VARIANT_ID": "",
+      "LEMONSQUEEZY_WEBHOOK_SECRET": ""
+    }
   }
+>>>>>>> 0cc4553a9e3a96acd13ef280a34e5e73b5b53a3f
 }

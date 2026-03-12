@@ -19,20 +19,6 @@ const LS_MONTHLY_VARIANT_ID = process.env.LEMONSQUEEZY_MONTHLY_VARIANT_ID;
 const LS_ANNUAL_VARIANT_ID = process.env.LEMONSQUEEZY_ANNUAL_VARIANT_ID;
 const LS_WEBHOOK_SECRET = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
 
-// ✅ ADD THIS:
-console.log('🔑 LS Config check:', {
-  apiKey: LS_API_KEY ? '✅' : '❌ MISSING',
-  storeId: LS_STORE_ID ? '✅' : '❌ MISSING',
-  monthlyVariant: LS_MONTHLY_VARIANT_ID ? '✅' : '❌ MISSING',
-  annualVariant: LS_ANNUAL_VARIANT_ID ? '✅' : '❌ MISSING',
-});
-
-// ✅ ADD THIS — router-level logger:
-router.use((req, res, next) => {
-  console.log('🛣️ LS Router hit:', req.method, req.path);
-  next();
-});
-
 const LS_BASE_URL = 'https://api.lemonsqueezy.com/v1';
 
 // =====================
@@ -104,10 +90,6 @@ async function activateUserReferral(userId) {
 // =====================
 router.post('/create-checkout', protect, async (req, res) => {
   try {
-    console.log('🔍 Create checkout called');
-    console.log('🔍 req.user:', req.user?.email);
-    console.log('🔍 req.body:', req.body);
-
     const { billingCycle = 'monthly' } = req.body;
 
     if (!['monthly', 'annual'].includes(billingCycle)) {
@@ -273,7 +255,7 @@ router.post('/cancel', protect, async (req, res) => {
 // POST /api/lemonsqueezy/webhook
 // Handles LemonSqueezy webhook events
 // =====================
-router.post('/webhook', async (req, res) => {
+router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     // ✅ Verify webhook signature
     const secret = LS_WEBHOOK_SECRET;
@@ -530,6 +512,4 @@ router.post('/webhook', async (req, res) => {
   }
 });
 
-module.exports = router; 
-"" 
-console.log("LEMONSQUEEZY V2 LOADED " + new Date().toISOString()); 
+module.exports = router;
