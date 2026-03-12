@@ -131,7 +131,14 @@ app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/planning', require('./routes/planning'));
 app.use('/api/activity', require('./routes/activity')); // ✅ NEW: Activity logging routes
 app.use('/api/ai-email', require('./routes/aiEmail'));
-app.use('/api/lemonsqueezy', require('./routes/lemonsqueezy'));
+
+try {
+  const lsRouter = require('./routes/lemonsqueezy');
+  app.use('/api/lemonsqueezy', lsRouter);
+  console.log('✅ LemonSqueezy router mounted');
+} catch (err) {
+  console.error('❌ FAILED TO LOAD LEMONSQUEEZY ROUTER:', err.message);
+}
 
 console.log('✅ All routes mounted successfully');
 
