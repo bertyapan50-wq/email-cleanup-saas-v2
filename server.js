@@ -60,7 +60,13 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use('/api/lemonsqueezy/webhook', express.raw({ type: 'application/json' }));
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/lemonsqueezy/webhook') {
+    express.raw({ type: 'application/json' })(req, res, next);
+  } else {
+    express.json({ limit: '10mb' })(req, res, next);
+  }
+});
 
 // =====================
 // Session (before Passport)
