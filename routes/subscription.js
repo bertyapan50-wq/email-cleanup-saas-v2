@@ -24,7 +24,7 @@ const PAYMONGO_BASE_URL = 'https://api.paymongo.com/v1';
 const auth = Buffer.from(PAYMONGO_SECRET_KEY).toString('base64');
 
 if (!PAYMONGO_SECRET_KEY) {
-  throw new Error('PAYMONGO_SECRET_KEY is missing. Check .env file');
+  console.warn('⚠️ PAYMONGO_SECRET_KEY is missing - Paymongo routes disabled');
 }
 
 // ✅ Pricing Configuration (in centavos)
