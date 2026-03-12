@@ -134,15 +134,19 @@ app.use('/api/activity', require('./routes/activity')); // ✅ NEW: Activity log
 app.use('/api/ai-email', require('./routes/aiEmail'));
 
 app.get('/api/lemonsqueezy/ping', (req, res) => {
-  res.json({ ok: true });
+  console.log('🏓 PING HIT!');
+  return res.status(200).json({ ok: true });
 });
 
 try {
+  console.log('⏳ Loading lemonsqueezy router...');
   const lsRouter = require('./routes/lemonsqueezy');
+  console.log('📦 Router loaded, mounting...');
   app.use('/api/lemonsqueezy', lsRouter);
   console.log('✅ LemonSqueezy router mounted');
 } catch (err) {
   console.error('❌ FAILED TO LOAD LEMONSQUEEZY ROUTER:', err.message);
+  console.error('❌ STACK:', err.stack);
 }
 
 console.log('✅ All routes mounted successfully');
