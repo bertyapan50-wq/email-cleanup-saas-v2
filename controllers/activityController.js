@@ -1,8 +1,3 @@
-// BEFORE:
-const Activity = require('../models/Activity');
-const logger = require('../utils/logger');
-
-// AFTER:
 let Activity, logger;
 try {
   Activity = require('../models/Activity');
