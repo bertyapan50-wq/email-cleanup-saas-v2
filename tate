@@ -1,0 +1,120 @@
+[33m846b834[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m trigger: deploy from github
+[33md7555dc[m trigger: force github deploy
+[33mab09a2c[m fix: force redeploy clean User.js
+[33mcebab26[m fix: resolve merge conflict in User.js
+[33m412a84c[m fix: railway.toml duplicate sections + version marker
+[33m3459385[m debug: version marker test
+[33mfe139a4[m force: clear cache redeploy
+[33mae79b24[m debug: verbose lemonsqueezy logs
+[33m77eb162[m fix: remove duplicate lemonsqueezy router mount
+[33m4953a58[m fix: add lemonsqueezy ping test endpoint
+[33mcfd5387[m force: fresh build with npm ci
+[33m7f9f854[m debug: add version marker to lemonsqueezy
+[33m6a7ccb9[m fix: remove dockerfile builder
+[33m65db7f7[m debug: add build timestamp
+[33m4717bfa[m force: clear railway build cache
+[33m8ad0484[m debug: catch lemonsqueezy router load error
+[33m98858ed[m force: trigger Railway redeploy
+[33m7851002[m fix: add LS debug logs and remove inline express.raw from webhook
+[33mb07e6d0[m fix: lemonsqueezy webhook raw body conflict
+[33md4b568a[m debug: add checkout logs
+[33mc384378[m fix: paymongo crash on missing key
+[33mc11c665[m fix: remove paymongo crash on missing key
+[33mad8cec4[m fix: raw body for lemonsqueezy webhook
+[33m86fa590[m fix: use serve for production
+[33m4f79dc8[m fix: empty secrets array
+[33mcb63042[m fix: railway.toml with dockerfile builder
+[33m2b712d4[m remove railway.json
+[33m28e8ad4[m fix: use railway.json to force dockerfile builder
+[33mdaada6e[m fix: regenerate package-lock.json
+[33mc780d37[m fix: remove railpack and railway.toml
+[33m6d761f6[m fix: resolve conflicts and set dockerfile builder
+[33m0cc4553[m fix: add Dockerfile to bypass railpack
+[33mfe7fbc1[m fix: railway build config
+[33m2c0e4fb[m fix: remove build secrets requirement
+[33m4eda544[m fix: resolve merge conflict in server.js
+[33m56eaaef[m Add requirePremium to AI email routes
+[33mf89c1bb[m fix build secret
+[33m9a1ced8[m fix: remove env.example from tracking
+[33m8274e55[m fix: lemonsqueezy integration
+[33m2e2530d[m fix: railpack config
+[33mb5aa042[m initial commit
+[33m0b7f047[m Add requirePremium to AI email routes
+[33m6dda678[m update CORS for InboxDetox
+[33m08db639[m remove unused dependencies
+[33me217ad0[m fix: create new OAuth2 instance in getGmailClient
+[33md06b1eb[m fix: use actual sender name in email sign-off
+[33m93ddad6[m fix: remove placeholders from AI generated emails
+[33m4c7677d[m fix: stricter AI prompt to remove meta-commentary
+[33mbf7661b[m fix: remove AI reasoning from email output
+[33md4ea8bd[m fix: revert MongoStore syntax
+[33m6c28b7b[m fix: use access_token instead of refresh_token for broadcast
+[33m4246df3[m fix: access_type offline and googleTokens field names
+[33mf4b0e5b[m fix: add broadcastEmails export
+[33mb7d70e7[m feat: Add Smart Broadcast feature
+[33m7f87b89[m fix routes
+[33m538fde5[m fix routes
+[33m4540502[m Fix: Destructure MongoStore from connect-mongo exports
+[33m3e87ac1[m Fix: Destructure MongoStore from connect-mongo exports
+[33m835d060[m Fix duplicate require and add debug logging
+[33m11e231b[m Fix duplicate require and add debug logging
+[33md727b5b[m Fix MongoStore - use mongoUrl instead of client for v6
+[33m60c927f[m Fix MongoStore - use mongoUrl instead of client for v6
+[33m2c2f4d7[m Regenerate package-lock.json with connect-mongo v6
+[33m5e25c75[m Regenerate package-lock.json with connect-mongo v6
+[33mb5d7d60[m Upgrade connect-mongo to v6 for mongodb v7 compatibility
+[33me8f1e74[m Upgrade connect-mongo to v6 for mongodb v7 compatibility
+[33md034ed5[m Downgrade connect-mongo to v5.1.0 and fix syntax
+[33m199a580[m Downgrade connect-mongo to v5.1.0 and fix syntax
+[33m39145ae[m 🐛 Fix MongoStore.create() syntax
+[33mbb8e07d[m 🐛 Fix MongoStore.create() syntax
+[33m8883553[m Fix: Use new MongoStore() for connect-mongo v6
+[33m396e2b9[m Fix: Use new MongoStore() for connect-mongo v6
+[33m622a54c[m 🐛 Fix Activity model loading in POST route
+[33mfd72f1a[m 🐛 Fix Activity model loading in POST route
+[33m365f1f7[m ✅ Add POST endpoint for activity logging
+[33ma7b24e4[m ✅ Add POST endpoint for activity logging
+[33m20e0076[m Update Groq model to llama-3.3-70b-versatile
+[33m9fb85ff[m Update Groq model to llama-3.3-70b-versatile
+[33m4c62b56[m Add AI email route
+[33m8a72845[m Add AI email route
+[33mac60d88[m Add AI email generator feature
+[33m37a239b[m Add AI email generator feature
+[33m7de9ce3[m Add force logout route
+[33m6739aa4[m Add force logout route
+[33ma6c3e35[m Fix auth scopes
+[33md8c46f3[m Fix auth scopes
+[33m91d5f30[m 🛠️ Fix Gmail reauth: add scopes and BACKEND_URL for proper OAuth flow
+[33m7b7c027[m 🛠️ Fix Gmail reauth: add scopes and BACKEND_URL for proper OAuth flow
+[33m80faafd[m 🛠️ Fix reauth loop: add BACKEND_URL and update /reauth route
+[33mf599ef1[m 🛠️ Fix reauth loop: add BACKEND_URL and update /reauth route
+[33m7ef1b7f[m 🛠️ Fix reauth redirect: add BACKEND_URL to .env and update /reauth route
+[33mcd92177[m ✅ Fix /reauth route: use absolute backend URL for Google OAuth
+[33m8e9da5c[m ✅ Fix /reauth route: use absolute backend URL for Google OAuth
+[33m7a7250e[m ✅ Add /reauth route for Gmail re-authentication
+[33m67b4e0f[m ✅ Add /reauth route for Gmail re-authentication
+[33m87573b2[m Fix: replace outer with router to prevent ReferenceError on /emails route
+[33mde616ce[m Fix: replace outer with router to prevent ReferenceError on /emails route
+[33m8c41091[m Fix: safe bufferTime & saveSchedule task update to prevent 500 errors
+[33m5fdca20[m Fix: safe bufferTime & saveSchedule task update to prevent 500 errors
+[33mbcbd34f[m Add logging to verify deployment
+[33m64f15b0[m Add logging to verify deployment
+[33ma816a3e[m Force rebuild - add newline to planningService
+[33mdf7929b[m Force rebuild - add newline to planningService
+[33m97a8346[m Force Render redeploy - fix saveSchedule
+[33med30f30[m Fix: Replace task.save() with findByIdAndUpdate in saveSchedule
+[33m045ed84[m Fix: Replace task.save() with findByIdAndUpdate in saveSchedule
+[33m71b616e[m Fix API URLs
+[33m00fa293[m Fix API URLs
+[33m0ac1a78[m Fix CORS and update routes
+[33mc5ac3a1[m Fix CORS and update routes
+[33md9bc01d[m Fix OAuth callback - pass token in URL
+[33m16280a7[m Fix OAuth callback - pass token in URL
+[33m1089cbb[m Fix OAuth redirect - pass token in URL
+[33m8498a27[m Fix OAuth redirect - pass token in URL
+[33mbb0623e[m Fix: Redirect to root URL after OAuth success
+[33me15e2ae[m Fix: Redirect to root URL after OAuth success
+[33m550cae0[m Fix session cookie for cross-domain auth
+[33ma25cf0d[m Fix session cookie for cross-domain auth
+[33m292b012[m Initial commit with placeholders
+[33me3f5a25[m Initial commit with placeholders
