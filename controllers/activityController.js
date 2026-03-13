@@ -1,5 +1,23 @@
+// BEFORE:
 const Activity = require('../models/Activity');
 const logger = require('../utils/logger');
+
+// AFTER:
+let Activity, logger;
+try {
+  Activity = require('../models/Activity');
+  console.log('✅ Activity model loaded');
+} catch(e) {
+  console.error('❌ Activity model failed:', e.message);
+}
+try {
+  logger = require('../utils/logger');
+  console.log('✅ Logger loaded');
+} catch(e) {
+  console.error('❌ Logger failed:', e.message);
+  // Fallback para hindi mag-crash ang buong controller
+  logger = { info: console.log, error: console.error };
+}
 
 // Get user's activity logs
 exports.getActivityLogs = async (req, res) => {
