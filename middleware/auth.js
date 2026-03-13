@@ -120,10 +120,45 @@ const protectJWT = async (req, res, next) => {
 const isAuthenticated = auth;
 
 /**
+ * ✅ Premium check middleware
+ */
+const requirePremium = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const premiumTiers = ['premium', 'pro', 'enterprise', 'trial'];
+    const userTier = req.user.subscriptionTier?.toLowerCase();
+    const userStatus = req.user.subscriptionStatus?.toLowerCase();
+
+    if (premiumTiers.includes(userTier) || userStatus === 'active' || userStatus === 'trialing') {
+      return next();
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: 'Premium subscription required',
+      upgradeRequired: true
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+/**
  * ✅ EXPORTS (BUG-PROOF)
  */
 module.exports = auth;
 module.exports.auth = auth;
 module.exports.protect = protect;
 module.exports.protectJWT = protectJWT;
-module.exports.isAuthenticated = isAuthenticated; // ✅ ADDED THIS
+module.exports.isAuthenticated = isAuthenticated;
+module.exports.requirePremium = requirePremium; // ✅ ADDED
