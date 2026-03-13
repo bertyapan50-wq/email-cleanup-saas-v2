@@ -126,13 +126,18 @@ app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/planning', require('./routes/planning'));
 app.use('/api/activity', require('./routes/activity')); // ✅ NEW: Activity logging routes
 app.use('/api/ai-email', require('./routes/aiEmail'));
+
+app.get('/api/lemonsqueezy/ping', (req, res) => {
+  return res.json({ ok: true });
+});
+
 try {
   app.use('/api/lemonsqueezy', require('./routes/lemonsqueezy'));
   console.log('✅ LemonSqueezy router mounted');
 } catch (err) {
   console.error('❌ LemonSqueezy failed:', err.message);
+  console.error('❌ Stack:', err.stack);
 }
-
 console.log('✅ All routes mounted successfully');
 
 // =====================
