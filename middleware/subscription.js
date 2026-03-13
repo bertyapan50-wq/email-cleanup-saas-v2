@@ -2,16 +2,25 @@
 const User = require('../models/User');
 const logger = require('../utils/logger');
 
+// ✅ Helper: Always get fresh user from DB (avoids stale session data after payment)
+async function getFreshUser(reqUser) {
+  if (!reqUser) return null;
+  const id = reqUser._id || reqUser.id;
+  let user = null;
+  if (id) user = await User.findById(id).catch(() => null);
+  if (!user && reqUser.googleId) user = await User.findOne({ googleId: reqUser.googleId });
+  if (!user && reqUser.email) user = await User.findOne({ email: reqUser.email });
+  return user;
+}
+
 // ✅ EXISTING: Check email quota (keep as is)
 exports.checkEmailQuota = async (req, res, next) => {
   try {
     console.log('🔍 Quota check - req.user:', req.user);
     
-    // ✅ Get user ID from Passport session
     const userId = req.user.id || req.user._id || req.user.googleId;
     console.log('🔍 Looking for user with ID:', userId);
     
-    // ✅ Always search by googleId (since Passport stores Google ID)
     const user = await User.findById(userId) || await User.findOne({ googleId: userId });
     
     if (!user) {
@@ -27,7 +36,6 @@ exports.checkEmailQuota = async (req, res, next) => {
     const now = new Date();
     const lastReset = new Date(user.lastQuotaReset || now);
     
-    // Reset quota if new month
     if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
       user.emailQuotaUsed = 0;
       user.lastQuotaReset = now;
@@ -35,45 +43,30 @@ exports.checkEmailQuota = async (req, res, next) => {
       console.log('🔄 Quota reset for new month');
     }
     
-    // ✅ Check quota limit based on tier
     const tier = user.subscriptionTier || 'free';
     const limit = user.emailQuotaLimit || 100;
     const used = user.emailQuotaUsed || 0;
     
-    // ✅ Premium/Enterprise users have unlimited quota
     if (tier === 'premium' || tier === 'enterprise' || tier === 'pro') {
       console.log('✅ Premium user - unlimited quota');
       req.user = user;
       return next();
     }
     
-    // Original free tier check
     if (tier === 'free' && used >= limit) {
       return res.status(403).json({ 
         success: false, 
         message: 'Monthly email quota exceeded. Please upgrade your plan.',
-        quota: {
-          used: used,
-          limit: limit,
-          tier: tier
-        }
+        quota: { used, limit, tier }
       });
     }
     
-    console.log('✅ Quota check passed:', {
-      user: user.email,
-      used: used,
-      limit: limit,
-      tier: tier
-    });
-    
-    // ✅ Attach full user document to request
+    console.log('✅ Quota check passed:', { user: user.email, used, limit, tier });
     req.user = user;
     next();
     
   } catch (error) {
     console.error('❌ Quota check error:', error.message);
-    console.error('Stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       message: 'Quota check failed',
@@ -82,24 +75,33 @@ exports.checkEmailQuota = async (req, res, next) => {
   }
 };
 
-// ✅ EXISTING: Require premium (enhanced)
+// ✅ FIX: requirePremium — re-fetches user from DB so payment is always reflected
 exports.requirePremium = async (req, res, next) => {
   try {
-    const user = req.user;
-console.log('🔒 REQUIRE PREMIUM CHECK - email:', user?.email, '| tier:', user?.subscriptionTier);
-    
-    // ✅ ENHANCED: Include trial check
-    const isPremium = user.subscriptionTier === 'premium' || 
-                     user.subscriptionTier === 'pro' || 
+    // ✅ Always fetch fresh from DB — session/passport user can be stale after payment
+    const user = await getFreshUser(req.user);
+
+    if (!user) {
+      logger.error('🔒 requirePremium: user not found');
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    // Attach fresh user so downstream handlers get updated data
+    req.user = user;
+
+    logger.info(`🔒 REQUIRE PREMIUM CHECK - email: ${user.email} | tier: ${user.subscriptionTier} | status: ${user.subscriptionStatus}`);
+
+    const isPremium = user.subscriptionTier === 'premium' ||
+                     user.subscriptionTier === 'pro' ||
                      user.subscriptionTier === 'enterprise';
-    
+
     const isTrialActive = user.trialEndDate && new Date() < new Date(user.trialEndDate);
-    
+
     if (isPremium || isTrialActive) {
       logger.info(`✅ Premium access granted for ${user.email}`);
       return next();
     }
-    
+
     logger.info(`🔒 Premium access denied for ${user.email}`);
     return res.status(403).json({
       success: false,
@@ -115,49 +117,44 @@ console.log('🔒 REQUIRE PREMIUM CHECK - email:', user?.email, '| tier:', user?
   }
 };
 
-// ✅ NEW: Check cleanup quota (3/month for free, unlimited for premium)
+// ✅ Check cleanup quota
 exports.checkCleanupQuota = async (req, res, next) => {
   try {
-    const user = req.user;
-    
+    // ✅ FIX: fetch fresh user here too
+    const user = await getFreshUser(req.user);
+
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Not authenticated'
-      });
+      return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
-    
-    // Premium/Pro/Enterprise users have unlimited
-    const isPremium = user.subscriptionTier === 'premium' || 
-                     user.subscriptionTier === 'pro' || 
+
+    req.user = user;
+
+    const isPremium = user.subscriptionTier === 'premium' ||
+                     user.subscriptionTier === 'pro' ||
                      user.subscriptionTier === 'enterprise';
-    
+
     if (isPremium) {
       logger.info(`✅ Unlimited cleanup for premium user ${user.email}`);
       return next();
     }
-    
-    // Trial users have unlimited
+
     const isTrialActive = user.trialEndDate && new Date() < new Date(user.trialEndDate);
     if (isTrialActive) {
       logger.info(`✅ Unlimited cleanup for trial user ${user.email}`);
       return next();
     }
-    
-    // Free users - check and reset quota if needed
+
     const now = new Date();
     const lastReset = user.lastCleanupReset || now;
     const daysSinceReset = (now - lastReset) / (1000 * 60 * 60 * 24);
-    
-    // Auto-reset every 30 days
+
     if (daysSinceReset >= 30) {
       user.freeCleanupCount = 3;
       user.lastCleanupReset = now;
       await user.save();
       logger.info(`🔄 Reset cleanup quota for ${user.email}`);
     }
-    
-    // Check quota
+
     if (user.freeCleanupCount <= 0) {
       logger.info(`🔒 Cleanup quota exceeded for ${user.email}`);
       return res.status(403).json({
@@ -169,38 +166,33 @@ exports.checkCleanupQuota = async (req, res, next) => {
         upgradeUrl: '/subscription'
       });
     }
-    
+
     logger.info(`✅ Cleanup allowed for ${user.email}. Remaining: ${user.freeCleanupCount}`);
     next();
-    
+
   } catch (error) {
     logger.error('Cleanup quota check error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to verify cleanup quota'
-    });
+    return res.status(500).json({ success: false, error: 'Failed to verify cleanup quota' });
   }
 };
 
-// ✅ NEW: Middleware to deduct cleanup after successful operation
+// ✅ Middleware to deduct cleanup after successful operation
 exports.deductCleanup = async (req, res, next) => {
   try {
     const user = req.user;
-    
-    // Only deduct for free users
-    const isPremium = user.subscriptionTier === 'premium' || 
-                     user.subscriptionTier === 'pro' || 
+
+    const isPremium = user.subscriptionTier === 'premium' ||
+                     user.subscriptionTier === 'pro' ||
                      user.subscriptionTier === 'enterprise';
     const isTrialActive = user.trialEndDate && new Date() < new Date(user.trialEndDate);
-    
+
     if (!isPremium && !isTrialActive) {
       user.freeCleanupCount -= 1;
       user.totalCleanupsUsed += 1;
       await user.save();
-      
+
       logger.info(`📉 Cleanup deducted for ${user.email}. Remaining: ${user.freeCleanupCount}`);
-      
-      // Add remaining count to response
+
       const originalJson = res.json.bind(res);
       res.json = function(data) {
         return originalJson({
@@ -214,15 +206,14 @@ exports.deductCleanup = async (req, res, next) => {
         });
       };
     } else {
-      // Premium users - just track usage
       user.totalCleanupsUsed += 1;
       await user.save();
     }
-    
+
     next();
-    
+
   } catch (error) {
     logger.error('Cleanup deduction error:', error);
-    next(); // Don't block the response if deduction fails
+    next();
   }
 };

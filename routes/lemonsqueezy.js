@@ -22,6 +22,22 @@ const LS_WEBHOOK_SECRET = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
 const LS_BASE_URL = 'https://api.lemonsqueezy.com/v1';
 
 // =====================
+// ✅ FIX: Validate env vars on startup so you catch missing IDs early
+// =====================
+const missingVars = [];
+if (!LS_API_KEY) missingVars.push('LEMONSQUEEZY_API_KEY');
+if (!LS_STORE_ID) missingVars.push('LEMONSQUEEZY_STORE_ID');
+if (!LS_MONTHLY_VARIANT_ID) missingVars.push('LEMONSQUEEZY_MONTHLY_VARIANT_ID');
+if (!LS_ANNUAL_VARIANT_ID) missingVars.push('LEMONSQUEEZY_ANNUAL_VARIANT_ID');
+if (!LS_WEBHOOK_SECRET) missingVars.push('LEMONSQUEEZY_WEBHOOK_SECRET');
+
+if (missingVars.length > 0) {
+  logger.error(`❌ Missing LemonSqueezy env vars: ${missingVars.join(', ')}`);
+} else {
+  logger.info(`✅ LemonSqueezy config loaded — Store: ${LS_STORE_ID} | Monthly: ${LS_MONTHLY_VARIANT_ID} | Annual: ${LS_ANNUAL_VARIANT_ID}`);
+}
+
+// =====================
 // Helper: LS API Request
 // =====================
 const lsRequest = async (method, endpoint, data = null) => {
@@ -44,7 +60,7 @@ const lsRequest = async (method, endpoint, data = null) => {
 };
 
 // =====================
-// Helper: Activate Referral (copied from subscription.js)
+// Helper: Activate Referral
 // =====================
 async function activateUserReferral(userId) {
   try {
@@ -86,10 +102,22 @@ async function activateUserReferral(userId) {
 
 // =====================
 // POST /api/lemonsqueezy/create-checkout
-// Creates a LemonSqueezy checkout URL
 // =====================
 router.post('/create-checkout', protect, async (req, res) => {
   try {
+    // ✅ FIX: Validate IDs before making the API call — gives clear error instead of cryptic 404
+    if (!LS_STORE_ID || !LS_MONTHLY_VARIANT_ID || !LS_ANNUAL_VARIANT_ID) {
+      logger.error(`❌ Cannot create checkout — missing env vars. Store: ${LS_STORE_ID} | Monthly: ${LS_MONTHLY_VARIANT_ID} | Annual: ${LS_ANNUAL_VARIANT_ID}`);
+      return res.status(500).json({
+        success: false,
+        error: 'Payment configuration error. Please contact support.',
+        // ✅ Only expose detail in non-production for debugging
+        ...(process.env.NODE_ENV !== 'production' && {
+          debug: `Missing: Store=${LS_STORE_ID}, Monthly=${LS_MONTHLY_VARIANT_ID}, Annual=${LS_ANNUAL_VARIANT_ID}`
+        })
+      });
+    }
+
     const { billingCycle = 'monthly' } = req.body;
 
     if (!['monthly', 'annual'].includes(billingCycle)) {
@@ -117,6 +145,9 @@ router.post('/create-checkout', protect, async (req, res) => {
       ? LS_ANNUAL_VARIANT_ID
       : LS_MONTHLY_VARIANT_ID;
 
+    // ✅ FIX: Log exactly what IDs are being sent so you can verify against LS dashboard
+    logger.info(`🛒 Creating checkout — Store: ${LS_STORE_ID} | Variant: ${variantId} | Cycle: ${billingCycle} | User: ${user.email}`);
+
     // Build checkout payload
     const checkoutPayload = {
       data: {
@@ -139,7 +170,9 @@ router.post('/create-checkout', protect, async (req, res) => {
           },
           expires_at: null,
           preview: false,
-          test_mode: LS_API_KEY?.includes('_test_')
+          // ✅ FIX: Don't auto-detect test_mode from API key — set it explicitly via env var
+          // Using wrong test_mode causes store/variant 404 if IDs are from the other environment
+          test_mode: process.env.LEMONSQUEEZY_TEST_MODE === 'true'
         },
         relationships: {
           store: {
@@ -153,14 +186,12 @@ router.post('/create-checkout', protect, async (req, res) => {
     };
 
     const checkout = await lsRequest('POST', '/checkouts', checkoutPayload);
-
     const checkoutUrl = checkout.data?.attributes?.url;
 
     if (!checkoutUrl) {
       throw new Error('No checkout URL returned from LemonSqueezy');
     }
 
-    // Save LS customer info
     user.lemonSqueezyOrderId = checkout.data?.id;
     await user.save();
 
@@ -184,11 +215,16 @@ router.post('/create-checkout', protect, async (req, res) => {
 
 // =====================
 // GET /api/lemonsqueezy/status
-// Get current subscription status
 // =====================
 router.get('/status', protect, async (req, res) => {
   try {
-    const user = req.user;
+    // ✅ FIX: Always fetch fresh user from DB — session data can be stale after payment
+    const user = await User.findById(req.user._id || req.user.id) 
+               || await User.findOne({ email: req.user.email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
 
     res.json({
       success: true,
@@ -211,7 +247,6 @@ router.get('/status', protect, async (req, res) => {
 
 // =====================
 // POST /api/lemonsqueezy/cancel
-// Cancel subscription
 // =====================
 router.post('/cancel', protect, async (req, res) => {
   try {
@@ -224,10 +259,8 @@ router.post('/cancel', protect, async (req, res) => {
       return res.status(400).json({ success: false, error: 'No active LemonSqueezy subscription found' });
     }
 
-    // Cancel at period end via LS API
     await lsRequest('DELETE', `/subscriptions/${lsSubId}`);
 
-    // Update DB
     const subscription = await Subscription.findOne({ userId: user._id });
     if (subscription) {
       subscription.cancelAtPeriodEnd = true;
@@ -253,11 +286,9 @@ router.post('/cancel', protect, async (req, res) => {
 
 // =====================
 // POST /api/lemonsqueezy/webhook
-// Handles LemonSqueezy webhook events
 // =====================
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
-    // ✅ Verify webhook signature
     const secret = LS_WEBHOOK_SECRET;
     const signature = req.headers['x-signature'];
 
@@ -278,7 +309,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     logger.info(`📦 LS Webhook received: ${eventName}`);
 
     // =====================
-    // ORDER CREATED (one-time or first payment)
+    // ORDER CREATED
     // =====================
     if (eventName === 'order_created') {
       const order = payload.data;
@@ -297,7 +328,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         return res.json({ success: true });
       }
 
-      // Calculate period
       const now = new Date();
       const periodEnd = new Date(now);
       if (billingCycle === 'annual') {
@@ -309,7 +339,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       const amount = order.attributes?.total || 0;
       const invoiceNumber = `LS-INV-${Date.now()}-${userId.toString().slice(-6)}`;
 
-      // Find or create subscription
       let subscription = await Subscription.findOne({ userId: user._id });
       if (!subscription) {
         subscription = new Subscription({
@@ -327,8 +356,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       subscription.provider = 'lemonsqueezy';
       subscription.currentPeriodStart = now;
       subscription.currentPeriodEnd = periodEnd;
-
-      // Add to payment history
       subscription.paymentHistory.push({
         date: now,
         amount,
@@ -339,10 +366,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         method: 'lemonsqueezy',
         billingCycle
       });
-
       await subscription.save();
 
-      // Update user
       user.subscriptionTier = plan;
       user.subscriptionStatus = 'active';
       user.emailQuotaLimit = 999999;
@@ -351,7 +376,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       user.nextBillingDate = periodEnd;
       await user.save();
 
-      // Activate referral
       await activateUserReferral(user._id);
 
       logger.info(`✅ LS Order: User upgraded to ${plan} (${billingCycle}): ${user.email}`);
@@ -382,7 +406,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     }
 
     // =====================
-    // SUBSCRIPTION UPDATED (renewal, upgrade, downgrade)
+    // SUBSCRIPTION UPDATED
     // =====================
     if (eventName === 'subscription_updated') {
       const lsSub = payload.data;
@@ -392,8 +416,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         const user = await User.findById(userId);
         if (user) {
           const status = lsSub.attributes?.status;
-
-          // Map LS status to our status
           const statusMap = {
             'active': 'active',
             'cancelled': 'canceled',
@@ -402,19 +424,15 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             'on_trial': 'active',
             'paused': 'inactive'
           };
-
           const mappedStatus = statusMap[status] || 'inactive';
-
           user.subscriptionStatus = mappedStatus;
 
-          // Update period end if available
           const renewsAt = lsSub.attributes?.renews_at;
           if (renewsAt) {
             user.currentPeriodEnd = new Date(renewsAt);
             user.nextBillingDate = new Date(renewsAt);
           }
 
-          // If canceled, downgrade after period end
           if (status === 'cancelled' || status === 'expired') {
             user.subscriptionTier = 'free';
             user.emailQuotaLimit = 100;
@@ -422,7 +440,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
           await user.save();
 
-          // Update subscription doc
           const subscription = await Subscription.findOne({ userId: user._id });
           if (subscription) {
             subscription.status = mappedStatus;
@@ -437,7 +454,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     }
 
     // =====================
-    // SUBSCRIPTION PAYMENT SUCCESS (renewal)
+    // SUBSCRIPTION PAYMENT SUCCESS
     // =====================
     if (eventName === 'subscription_payment_success') {
       const payment = payload.data;
@@ -462,7 +479,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             await subscription.save();
           }
 
-          // Extend period
           const now = new Date();
           const periodEnd = new Date(now);
           if (subscription?.billingCycle === 'annual') {
