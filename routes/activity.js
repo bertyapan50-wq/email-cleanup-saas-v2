@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { isAuthenticated } = require('../middleware/auth');
+const { isAuthenticated, requirePremium } = require('../middleware/auth');
 const activityController = require('../controllers/activityController');
 
 console.log('📊 Loading activity routes...');
