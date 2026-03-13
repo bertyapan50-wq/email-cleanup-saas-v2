@@ -250,7 +250,7 @@ router.post('/gmail/move', protect, async (req, res) => {
 // ==========================================
 
 // ✅ GET ALL INBOX EMAILS - Used by App.js loadRealEmails()
-router.get('/emails', protect, checkEmailQuota, async (req, res) => {
+router.get('/emails', protect, async (req, res) => {
   try {
     console.log('📧 GET /api/email/emails called');
     
