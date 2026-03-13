@@ -3,6 +3,8 @@ const router = express.Router();
 const { isAuthenticated, requirePremium } = require('../middleware/auth');
 const activityController = require('../controllers/activityController');
 
+console.log('🔍 activityController:', activityController);
+console.log('🔍 getActivityLogs:', activityController?.getActivityLogs);
 console.log('📊 Loading activity routes...');
 
 // @desc    Get user's activity logs
