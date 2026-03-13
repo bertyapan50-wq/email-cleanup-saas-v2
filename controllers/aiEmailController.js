@@ -1,24 +1,3 @@
-<<<<<<< HEAD
-const generateEmail = async (req, res) => {
-  try {
-    console.log('🤖 [AI EMAIL] Generate endpoint called');
-    
-    const { prompt, tone = 'professional', context } = req.body;
-    
-    if (!prompt) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Prompt is required' 
-      });
-    }
-
-    if (!process.env.GROQ_API_KEY) {
-      console.error('❌ GROQ_API_KEY not configured');
-      return res.status(500).json({
-        success: false,
-        error: 'AI service not configured'
-      });
-=======
 const gmailService = require('../services/gmailService');
 const logger = require('../utils/logger');
 
@@ -63,7 +42,6 @@ const generateEmail = async (req, res) => {
 
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ success: false, error: 'AI service not configured' });
->>>>>>> 0cc4553a9e3a96acd13ef280a34e5e73b5b53a3f
     }
 
     const tonePrompts = {
@@ -74,45 +52,6 @@ const generateEmail = async (req, res) => {
       detailed: 'You are a thorough email writer. Write comprehensive, detailed emails with all necessary information.'
     };
 
-<<<<<<< HEAD
-    const systemPrompt = tonePrompts[tone] || tonePrompts.professional;
-
-    console.log('📡 Calling Groq API...');
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile', // ✅ UPDATED MODEL!
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt + ' Always start emails with "Subject: [subject line]" followed by the email body.'
-          },
-          {
-            role: 'user',
-            content: context 
-              ? `Context: ${context}\n\nRequest: ${prompt}`
-              : prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 800
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('❌ Groq API error:', data);
-      throw new Error(data.error?.message || 'AI generation failed');
-    }
-
-    const generatedEmail = data.choices[0].message.content;
-=======
     const systemPrompt = (tonePrompts[tone] || tonePrompts.professional) +
       ' Always start emails with "Subject: [subject line]" followed by the email body.';
 
@@ -121,29 +60,11 @@ const generateEmail = async (req, res) => {
       context ? `Context: ${context}\n\nRequest: ${prompt}` : prompt
     );
 
->>>>>>> 0cc4553a9e3a96acd13ef280a34e5e73b5b53a3f
     const subjectMatch = generatedEmail.match(/Subject:\s*(.+?)(?:\n|$)/i);
     const subject = subjectMatch ? subjectMatch[1].trim() : 'No Subject';
     const body = generatedEmail.replace(/Subject:\s*.+?(?:\n|$)/i, '').trim();
 
     console.log('✅ Email generated successfully');
-<<<<<<< HEAD
-
-    res.json({
-      success: true,
-      email: { subject, body, full: generatedEmail }
-    });
-
-  } catch (error) {
-    console.error('❌ Generate email error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to generate email'
-    });
-  }
-};
-
-=======
     res.json({ success: true, email: { subject, body, full: generatedEmail } });
 
   } catch (error) {
@@ -155,71 +76,11 @@ const generateEmail = async (req, res) => {
 // ─────────────────────────────────────────────
 // Improve existing email
 // ─────────────────────────────────────────────
->>>>>>> 0cc4553a9e3a96acd13ef280a34e5e73b5b53a3f
 const improveEmail = async (req, res) => {
   try {
     const { email, instruction } = req.body;
 
     if (!email || !instruction) {
-<<<<<<< HEAD
-      return res.status(400).json({
-        success: false,
-        error: 'Email and instruction are required'
-      });
-    }
-
-    if (!process.env.GROQ_API_KEY) {
-      return res.status(500).json({
-        success: false,
-        error: 'AI service not configured'
-      });
-    }
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile', // ✅ UPDATED MODEL!
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert email editor. Improve emails based on user instructions.'
-          },
-          {
-            role: 'user',
-            content: `Original Email:\n${email}\n\nInstruction: ${instruction}\n\nProvide the improved version:`
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 800
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'AI improvement failed');
-    }
-
-    res.json({
-      success: true,
-      improvedEmail: data.choices[0].message.content
-    });
-
-  } catch (error) {
-    console.error('❌ Improve email error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to improve email'
-    });
-  }
-};
-
-module.exports = { generateEmail, improveEmail };
-=======
       return res.status(400).json({ success: false, error: 'Email and instruction are required' });
     }
 
@@ -241,20 +102,19 @@ module.exports = { generateEmail, improveEmail };
 };
 
 // ─────────────────────────────────────────────
-// ✅ NEW: Smart Broadcast — Send personalized bulk emails
+// ✅ Smart Broadcast — Send personalized bulk emails
 // ─────────────────────────────────────────────
 const broadcastEmails = async (req, res) => {
   try {
     console.log('📤 [BROADCAST] Smart broadcast endpoint called');
 
     const {
-      recipients,   // [{ email, name, context }]
-      basePrompt,   // The user's message/template prompt
+      recipients,
+      basePrompt,
       tone = 'professional',
-      subject: manualSubject  // optional manual subject override
+      subject: manualSubject
     } = req.body;
 
-    // ── Validation ──────────────────────────────
     if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
       return res.status(400).json({ success: false, error: 'Recipients list is required' });
     }
@@ -267,10 +127,10 @@ const broadcastEmails = async (req, res) => {
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ success: false, error: 'AI service not configured' });
     }
-     if (!req.user?.googleTokens?.access_token) {
-  return res.status(401).json({ success: false, error: 'Gmail not connected' });
+    if (!req.user?.googleTokens?.access_token) {
+      return res.status(401).json({ success: false, error: 'Gmail not connected' });
+    }
 
-}
     const toneGuides = {
       professional: 'professional, formal, and respectful',
       friendly: 'warm, friendly, and approachable',
@@ -281,14 +141,12 @@ const broadcastEmails = async (req, res) => {
 
     const toneGuide = toneGuides[tone] || toneGuides.professional;
 
-    // ── Step 1: Generate personalized email for each recipient ──
     console.log(`🧠 Personalizing emails for ${recipients.length} recipients...`);
 
     const personalizedEmails = [];
 
     for (const recipient of recipients) {
       const { email, name, context: recipientContext } = recipient;
-
       const recipientName = name || email.split('@')[0];
 
       const systemPrompt = `You are an expert email writer. Write a ${toneGuide} email that feels genuinely personal to the recipient.
@@ -316,52 +174,29 @@ Make it feel personal and genuine to ${recipientName}.`;
 
       try {
         const generated = await callGroq(systemPrompt, userPrompt);
-
         const subjectMatch = generated.match(/Subject:\s*(.+?)(?:\n|$)/i);
         const emailSubject = manualSubject || (subjectMatch ? subjectMatch[1].trim() : 'Hello');
         const emailBody = generated.replace(/Subject:\s*.+?(?:\n|$)/i, '').trim();
 
-        personalizedEmails.push({
-          to: email,
-          subject: emailSubject,
-          body: emailBody,
-          recipientName
-        });
-
+        personalizedEmails.push({ to: email, subject: emailSubject, body: emailBody, recipientName });
         console.log(`✅ Personalized for ${email}`);
       } catch (aiError) {
         console.error(`❌ AI failed for ${email}:`, aiError.message);
-        // Skip failed personalization — don't send a blank email
-        personalizedEmails.push({
-          to: email,
-          subject: null,
-          body: null,
-          error: aiError.message,
-          recipientName
-        });
+        personalizedEmails.push({ to: email, subject: null, body: null, error: aiError.message, recipientName });
       }
     }
 
-    // ── Step 2: Filter out any AI failures ──
     const readyToSend = personalizedEmails.filter(e => e.subject && e.body);
     const aiFailures = personalizedEmails.filter(e => !e.subject || !e.body);
 
     if (readyToSend.length === 0) {
-      return res.status(500).json({
-        success: false,
-        error: 'AI failed to generate any emails. Please try again.'
-      });
+      return res.status(500).json({ success: false, error: 'AI failed to generate any emails. Please try again.' });
     }
 
-    // ── Step 3: Send via Gmail ──
     console.log(`📨 Sending ${readyToSend.length} emails via Gmail...`);
 
-    const broadcastResult = await gmailService.sendBroadcast(
-  req.user.googleTokens,
-  readyToSend
-);
+    const broadcastResult = await gmailService.sendBroadcast(req.user.googleTokens, readyToSend);
 
-    // ── Step 4: Build response ──
     const response = {
       success: true,
       summary: {
@@ -373,11 +208,7 @@ Make it feel personal and genuine to ${recipientName}.`;
       },
       results: [
         ...broadcastResult.results,
-        ...aiFailures.map(f => ({
-          success: false,
-          to: f.to,
-          error: `AI personalization failed: ${f.error}`
-        }))
+        ...aiFailures.map(f => ({ success: false, to: f.to, error: `AI personalization failed: ${f.error}` }))
       ]
     };
 
@@ -391,7 +222,7 @@ Make it feel personal and genuine to ${recipientName}.`;
 };
 
 // ─────────────────────────────────────────────
-// ✅ NEW: Preview personalized emails (no sending)
+// ✅ Preview personalized emails (no sending)
 // ─────────────────────────────────────────────
 const previewBroadcast = async (req, res) => {
   try {
@@ -401,7 +232,6 @@ const previewBroadcast = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Recipients and prompt are required' });
     }
 
-    // Only preview first 3 to save API calls
     const previewRecipients = recipients.slice(0, 3);
 
     const toneGuides = {
@@ -434,7 +264,6 @@ Base message/purpose: ${basePrompt}`;
         const subjectMatch = generated.match(/Subject:\s*(.+?)(?:\n|$)/i);
         const subject = subjectMatch ? subjectMatch[1].trim() : 'Hello';
         const body = generated.replace(/Subject:\s*.+?(?:\n|$)/i, '').trim();
-
         previews.push({ email, name: recipientName, subject, body, success: true });
       } catch (err) {
         previews.push({ email, name: recipientName, success: false, error: err.message });
@@ -450,4 +279,3 @@ Base message/purpose: ${basePrompt}`;
 };
 
 module.exports = { generateEmail, improveEmail, broadcastEmails, previewBroadcast };
->>>>>>> 0cc4553a9e3a96acd13ef280a34e5e73b5b53a3f
