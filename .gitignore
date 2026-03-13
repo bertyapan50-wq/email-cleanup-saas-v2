@@ -1,4 +1,6 @@
 node_modules/
 .env
 *.log
-.DS_Store.env.example 
+.DS_Store
+.env.example
+tate
