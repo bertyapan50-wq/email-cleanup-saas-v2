@@ -12,7 +12,7 @@ exports.checkEmailQuota = async (req, res, next) => {
     console.log('🔍 Looking for user with ID:', userId);
     
     // ✅ Always search by googleId (since Passport stores Google ID)
-    const user = await User.findOne({ googleId: userId });
+    const user = await User.findById(userId) || await User.findOne({ googleId: userId });
     
     if (!user) {
       console.error('❌ User not found. googleId:', userId);
