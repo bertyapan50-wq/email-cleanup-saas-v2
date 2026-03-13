@@ -15,7 +15,7 @@ const callGroq = async (messages, systemPrompt) => {
   const response = await axios.post(
     `${GROQ_BASE_URL}/chat/completions`,
     {
-      model: 'llama3-8b-8192',
+      model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },
         ...messages
