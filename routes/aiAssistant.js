@@ -70,17 +70,25 @@ router.post('/chat', protect, async (req, res) => {
     const ctx = emailContext || {};
     const topSenders = ctx.topSenders || [];
 
+    const recentEmailLines = (ctx.recentEmails || [])
+      .slice(0, 20)
+      .map(e => `  - [${e.category}] From: ${e.from} | Subject: "${e.subject}" | ${e.daysOld}d old | ${e.opened ? 'read' : 'UNREAD'}`)
+      .join('\n');
+
     const emailSummary = `
 User's inbox context:
 - Total emails: ${ctx.total || 0}
-- Primary: ${ctx.categories?.Primary || 0}
-- Promotions: ${ctx.categories?.Promotions || 0}
-- Social: ${ctx.categories?.Social || 0}
-- Updates: ${ctx.categories?.Updates || 0}
-- Newsletters: ${ctx.categories?.Newsletters || 0}
 - Unread: ${ctx.unread || 0}
-- Subscription tier: ${user.subscriptionTier || 'free'}
-- Top senders: ${topSenders.slice(0, 5).map(s => `${s.from} (${s.count})`).join(', ') || 'N/A'}
+- Promotions: ${ctx.promotions || 0}
+- Newsletters: ${ctx.newsletters || 0}
+- Social: ${ctx.social || 0}
+- Updates: ${ctx.updates || 0}
+- Spam/Junk: ${ctx.spam || 0}
+- Top senders: ${topSenders.slice(0, 5).map(s => `${s.name} (${s.count} emails)`).join(', ') || 'N/A'}
+- Subscription: ${user.subscriptionTier || 'free'}
+
+Recent emails (for analysis):
+${recentEmailLines || 'No recent emails available.'}
     `.trim();
 
     const systemPrompt = `You are InboxDetox AI, a smart email assistant for the InboxDetox app. You help users manage and clean their Gmail inbox.
