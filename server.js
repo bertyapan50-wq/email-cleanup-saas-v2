@@ -49,11 +49,7 @@ console.log('✅ Models loaded:', Object.keys(mongoose.models).join(', '));
 app.use(helmet());
 
 app.use(cors({
-<<<<<<< HEAD
-  origin: ['http://localhost:3000', 'https://gmail-cleanup-ai.netlify.app', 'https://inboxdetox.netlify.app'],
-=======
-origin: ['http://localhost:3000', 'https://gmail-cleanup-ai.netlify.app', 'https://inboxdetox.netlify.app'],
->>>>>>> 0cc4553a9e3a96acd13ef280a34e5e73b5b53a3f
+ origin: ['http://localhost:3000', 'https://gmail-cleanup-ai.netlify.app', 'https://inboxdetox.netlify.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
