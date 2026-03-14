@@ -38,15 +38,30 @@ const callGroq = async (messages, systemPrompt) => {
 // =====================
 const detectIntent = (message) => {
   const msg = message.toLowerCase();
+
+  // Delete intents
   if (msg.includes('delete') && (msg.includes('promo') || msg.includes('promotion'))) return 'DELETE_PROMOTIONS';
-  if (msg.includes('archive') && (msg.includes('newsletter') || msg.includes('news'))) return 'ARCHIVE_NEWSLETTERS';
-  if (msg.includes('archive') && (msg.includes('promo') || msg.includes('promotion'))) return 'ARCHIVE_PROMOTIONS';
-  if (msg.includes('clean') || msg.includes('cleanup') || msg.includes('clean up')) return 'CLEANUP';
-  if (msg.includes('summarize') || msg.includes('summary') || msg.includes('overview')) return 'SUMMARIZE';
+  if (msg.includes('delete') && msg.includes('newsletter')) return 'DELETE_NEWSLETTERS';
+  if (msg.includes('delete') && (msg.includes('spam') || msg.includes('junk'))) return 'DELETE_SPAM';
+  if (msg.includes('delete') && msg.includes('all')) return 'DELETE_ALL';
+
+  // Archive intents
+  if ((msg.includes('archive') || msg.includes('clean')) && (msg.includes('newsletter') || msg.includes('news'))) return 'ARCHIVE_NEWSLETTERS';
+  if ((msg.includes('archive') || msg.includes('clean')) && (msg.includes('promo') || msg.includes('promotion'))) return 'ARCHIVE_PROMOTIONS';
+  if ((msg.includes('archive') || msg.includes('clean')) && msg.includes('social')) return 'ARCHIVE_SOCIAL';
+  if ((msg.includes('archive') || msg.includes('clean')) && msg.includes('update')) return 'ARCHIVE_UPDATES';
+
+  // General cleanup
+  if (msg.includes('clean') || msg.includes('cleanup') || msg.includes('clean up') || msg.includes('declutter')) return 'CLEANUP';
+
+  // Info intents
+  if (msg.includes('summarize') || msg.includes('summary') || msg.includes('overview') || msg.includes('what') && msg.includes('inbox')) return 'SUMMARIZE';
   if (msg.includes('unread')) return 'UNREAD';
-  if (msg.includes('who email') || msg.includes('top sender') || msg.includes('most email')) return 'TOP_SENDERS';
+  if (msg.includes('who email') || msg.includes('top sender') || msg.includes('most email') || msg.includes('who sends')) return 'TOP_SENDERS';
   if (msg.includes('how many') || msg.includes('count') || msg.includes('total')) return 'COUNT';
   if (msg.includes('old') || msg.includes('oldest')) return 'OLD_EMAILS';
+  if (msg.includes('help') || msg.includes('what can')) return 'HELP';
+
   return 'GENERAL';
 };
 
@@ -70,8 +85,9 @@ router.post('/chat', protect, async (req, res) => {
     const ctx = emailContext || {};
     const topSenders = ctx.topSenders || [];
 
+    // ✅ FIX: Show more recent emails for better AI context (up to 50)
     const recentEmailLines = (ctx.recentEmails || [])
-      .slice(0, 20)
+      .slice(0, 50)
       .map(e => `  - [${e.category}] From: ${e.from} | Subject: "${e.subject}" | ${e.daysOld}d old | ${e.opened ? 'read' : 'UNREAD'}`)
       .join('\n');
 
@@ -87,28 +103,40 @@ User's inbox context:
 - Top senders: ${topSenders.slice(0, 5).map(s => `${s.name} (${s.count} emails)`).join(', ') || 'N/A'}
 - Subscription: ${user.subscriptionTier || 'free'}
 
-Recent emails (for analysis):
+Recent emails (up to 50, for analysis):
 ${recentEmailLines || 'No recent emails available.'}
     `.trim();
 
+    // ✅ FIX: System prompt now uses LOWERCASE action types to match frontend
     const systemPrompt = `You are InboxDetox AI, a smart email assistant for the InboxDetox app. You help users manage and clean their Gmail inbox.
 
 ${emailSummary}
 
-You can answer questions about the inbox, suggest cleanup actions, and provide email management tips.
+IMPORTANT RULES:
+- Always answer based on the real inbox data shown above. Do NOT make up numbers.
+- If the user asks "who emails me the most?", use the top senders list above.
+- If the user asks "how many emails do I have?", use the exact total from above.
+- If the user asks to summarize, describe the inbox categories with real counts.
+- Be accurate, friendly, and concise. Use emojis occasionally.
+- Address the user by first name: ${user.name?.split(' ')[0] || 'there'}.
 
-When you detect a cleanup/action request, include a JSON action block at the END of your response in this EXACT format (no extra text after it):
+WHEN THE USER WANTS TO TAKE ACTION (archive/delete/cleanup):
+Include a JSON action block at the END of your response in this EXACT format.
+IMPORTANT: Use LOWERCASE for "type" and "category" values.
+
 <action>
 {
-  "type": "ARCHIVE" | "DELETE" | "NONE",
+  "type": "archive" | "delete" | "none",
   "category": "Promotions" | "Newsletters" | "Social" | "Updates" | "all",
-  "count": number,
-  "confirmMessage": "brief description of what will happen"
+  "count": <number from inbox context above>,
+  "message": "<brief description of what will happen, e.g. Archive 42 promotional emails>"
 }
 </action>
 
-Keep responses concise, friendly, and helpful. Use emojis occasionally. Address the user by first name: ${user.name?.split(' ')[0] || 'there'}.`;
+Only include <action> block when the user is requesting a cleanup/delete/archive action.
+Do NOT include <action> for questions, summaries, or general conversation.`;
 
+    // ✅ FIX: Limit history to last 10 messages to avoid token overflow
     const history = conversationHistory.slice(-10).map(msg => ({
       role: msg.role,
       content: msg.content
@@ -119,21 +147,35 @@ Keep responses concise, friendly, and helpful. Use emojis occasionally. Address 
       systemPrompt
     );
 
-    // Parse action block if present
+    // ✅ FIX: Parse action block and normalize type to lowercase
     let action = null;
     let cleanResponse = aiResponse;
 
     const actionMatch = aiResponse.match(/<action>([\s\S]*?)<\/action>/);
     if (actionMatch) {
       try {
-        action = JSON.parse(actionMatch[1].trim());
+        const parsed = JSON.parse(actionMatch[1].trim());
+
+        // ✅ Normalize type to lowercase so frontend ActionCard works correctly
+        action = {
+          ...parsed,
+          type: parsed.type?.toLowerCase() || 'none',
+          category: parsed.category || 'all',
+          count: parsed.count || 0,
+          message: parsed.message || parsed.confirmMessage || `${parsed.type} emails`
+        };
+
+        // Don't send action if type is "none"
+        if (action.type === 'none') action = null;
+
         cleanResponse = aiResponse.replace(/<action>[\s\S]*?<\/action>/, '').trim();
       } catch (e) {
         logger.error('Failed to parse AI action:', e.message);
+        cleanResponse = aiResponse.replace(/<action>[\s\S]*?<\/action>/, '').trim();
       }
     }
 
-    logger.info(`✅ AI Assistant response for ${user.email} | intent: ${intent}`);
+    logger.info(`✅ AI Assistant response for ${user.email} | intent: ${intent} | action: ${action?.type || 'none'}`);
 
     res.json({
       success: true,
