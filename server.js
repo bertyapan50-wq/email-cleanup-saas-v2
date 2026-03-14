@@ -39,6 +39,7 @@ require('./models/ConnectedAccount');
 require('./models/EmailAction');
 require('./models/SenderAnalytics');
 require('./models/Activity'); // ✅ NEW: Activity logging model
+require('./models/AutoRule'); // ✅ NEW: Auto Actions rules model
 
 // Verify models loaded
 console.log('✅ Models loaded:', Object.keys(mongoose.models).join(', '));
@@ -125,6 +126,7 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/planning', require('./routes/planning'));
 app.use('/api/activity', require('./routes/activity')); // ✅ NEW: Activity logging routes
+app.use('/api/rules', require('./routes/rules')); // ✅ NEW: Auto Actions rules
 app.use('/api/ai-email', require('./routes/aiEmail'));
 app.use('/api/ai-assistant', require('./routes/aiAssistant'));
 
