@@ -250,7 +250,7 @@ router.post('/gmail/move', protect, async (req, res) => {
 // ==========================================
 
 // ✅ GET ALL INBOX EMAILS - Used by App.js loadRealEmails()
-router.get('/emails', protect, checkEmailQuota, async (req, res) => {
+router.get('/emails', protect, async (req, res) => {
   try {
     console.log('📧 GET /api/email/emails called');
     
@@ -343,7 +343,7 @@ router.get('/emails', protect, checkEmailQuota, async (req, res) => {
 // ✅ DAGDAG DITO
 const User = require('../models/User');
 await User.findByIdAndUpdate(req.user._id, {
-  $inc: { emailQuotaUsed: allEmails.length }
+  $inc: { emailQuotaUsed: 1 }
 });
 
 res.json({
