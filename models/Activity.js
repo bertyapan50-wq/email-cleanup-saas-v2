@@ -66,7 +66,11 @@ const activitySchema = new mongoose.Schema({
       'activity_logs_cleared',
       
       // ✅ NEW: Catch-all
-      'general_action'
+      'general_action',
+'auto_archive',
+'auto_delete',
+'auto_label',
+'auto_star'
     ]
   },
   
