@@ -1963,6 +1963,181 @@ router.post('/trash/empty', protect, async (req, res) => {
   }
 });
 
+// ==========================================
+// ✅ NEW: SMART SUMMARY ENDPOINT
+// Add this BEFORE module.exports in routes/email.js
+// ==========================================
+
+router.get('/summary', protect, async (req, res) => {
+  try {
+    console.log('📊 GET /api/email/summary called');
+
+    if (!req.user || !req.user.googleTokens) {
+      return res.status(401).json({ success: false, error: 'Not authenticated' });
+    }
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    oauth2Client.setCredentials({
+      access_token: req.user.googleTokens.access_token,
+      refresh_token: req.user.googleTokens.refresh_token,
+      expiry_date: req.user.googleTokens.expiry_date
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    // ✅ STEP 1: Get total email counts from Gmail profile (instant, no quota cost)
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    const totalEmails = profile.data.messagesTotal || 0;
+    const totalThreads = profile.data.threadsTotal || 0;
+
+    // ✅ STEP 2: Get label counts (instant API call, very cheap)
+    const labelsResponse = await gmail.users.labels.list({ userId: 'me' });
+    const allLabels = labelsResponse.data.labels || [];
+
+    // Get counts for important labels
+    const labelIds = [
+      'INBOX', 'UNREAD', 'STARRED', 'SPAM', 'TRASH',
+      'CATEGORY_PROMOTIONS', 'CATEGORY_SOCIAL',
+      'CATEGORY_UPDATES', 'CATEGORY_FORUMS'
+    ];
+
+    const labelDetails = await Promise.all(
+      labelIds.map(id =>
+        gmail.users.labels.get({ userId: 'me', id }).catch(() => null)
+      )
+    );
+
+    const labelCounts = {};
+    labelDetails.forEach((detail, i) => {
+      if (detail) {
+        labelCounts[labelIds[i]] = {
+          total: detail.data.messagesTotal || 0,
+          unread: detail.data.messagesUnread || 0
+        };
+      }
+    });
+
+    // ✅ STEP 3: Fetch sample of 100 emails for top senders analysis
+    // (only metadata — very fast)
+    const sampleResponse = await gmail.users.messages.list({
+      userId: 'me',
+      labelIds: ['INBOX'],
+      maxResults: 100
+    });
+
+    const sampleMessages = sampleResponse.data.messages || [];
+    let topSenders = [];
+    let recentEmails = [];
+
+    if (sampleMessages.length > 0) {
+      // Batch fetch metadata only (cheap API call)
+      const batchSize = 20;
+      const senderCounts = {};
+      const recent = [];
+
+      for (let i = 0; i < Math.min(sampleMessages.length, 100); i += batchSize) {
+        const batch = sampleMessages.slice(i, i + batchSize);
+
+        const details = await Promise.all(
+          batch.map(msg =>
+            gmail.users.messages.get({
+              userId: 'me',
+              id: msg.id,
+              format: 'metadata',
+              metadataHeaders: ['From', 'Subject', 'Date']
+            }).catch(() => null)
+          )
+        );
+
+        details.forEach(detail => {
+          if (!detail) return;
+
+          const headers = detail.data.payload?.headers || [];
+          const from = headers.find(h => h.name === 'From')?.value || '';
+          const subject = headers.find(h => h.name === 'Subject')?.value || '';
+          const date = headers.find(h => h.name === 'Date')?.value || '';
+          const isUnread = detail.data.labelIds?.includes('UNREAD');
+
+          // Count senders
+          const senderEmail = from.match(/<(.+?)>/)
+            ? from.match(/<(.+?)>/)[1]
+            : from;
+          const senderDomain = senderEmail.split('@')[1] || senderEmail;
+
+          senderCounts[senderDomain] = (senderCounts[senderDomain] || 0) + 1;
+
+          // Keep recent emails for AI context (last 30)
+          if (recent.length < 30) {
+            recent.push({
+              from,
+              subject,
+              date,
+              isUnread,
+              category: getCategoryFromLabels(detail.data.labelIds),
+              daysOld: Math.floor(
+                (Date.now() - new Date(date)) / (1000 * 60 * 60 * 24)
+              )
+            });
+          }
+        });
+      }
+
+      // Get top 10 senders
+      topSenders = Object.entries(senderCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([domain, count]) => ({ name: domain, count }));
+
+      recentEmails = recent;
+    }
+
+    // ✅ STEP 4: Build comprehensive summary
+    const summary = {
+      // Real totals from Gmail
+      total: labelCounts['INBOX']?.total || totalEmails,
+      unread: labelCounts['INBOX']?.unread || labelCounts['UNREAD']?.total || 0,
+      starred: labelCounts['STARRED']?.total || 0,
+      spam: labelCounts['SPAM']?.total || 0,
+      trash: labelCounts['TRASH']?.total || 0,
+
+      // Category counts (from Gmail labels)
+      promotions: labelCounts['CATEGORY_PROMOTIONS']?.total || 0,
+      promotionsUnread: labelCounts['CATEGORY_PROMOTIONS']?.unread || 0,
+      social: labelCounts['CATEGORY_SOCIAL']?.total || 0,
+      socialUnread: labelCounts['CATEGORY_SOCIAL']?.unread || 0,
+      updates: labelCounts['CATEGORY_UPDATES']?.total || 0,
+      updatesUnread: labelCounts['CATEGORY_UPDATES']?.unread || 0,
+      forums: labelCounts['CATEGORY_FORUMS']?.total || 0,
+
+      // Derived stats
+      totalGmail: totalEmails,
+      totalThreads,
+      readRate: labelCounts['INBOX']?.total
+        ? Math.round(
+            ((labelCounts['INBOX'].total - (labelCounts['INBOX'].unread || 0)) /
+              labelCounts['INBOX'].total) * 100
+          )
+        : 0,
+
+      // Sample-based stats
+      topSenders,
+      recentEmails,
+      sampleSize: sampleMessages.length
+    };
+
+    console.log(`✅ Summary built: ${summary.total} inbox, ${summary.unread} unread`);
+
+    res.json({ success: true, summary });
+
+  } catch (error) {
+    console.error('❌ Error building summary:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 
 module.exports = router;
