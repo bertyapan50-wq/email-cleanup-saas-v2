@@ -127,7 +127,7 @@ const broadcastEmails = async (req, res) => {
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ success: false, error: 'AI service not configured' });
     }
-    if (!req.user?.googleTokens?.access_token) {
+    if (!req.user?.googleTokens?.refresh_token) {
       return res.status(401).json({ success: false, error: 'Gmail not connected' });
     }
 
@@ -195,7 +195,7 @@ Make it feel personal and genuine to ${recipientName}.`;
 
     console.log(`📨 Sending ${readyToSend.length} emails via Gmail...`);
 
-    const broadcastResult = await gmailService.sendBroadcast(req.user.googleTokens, readyToSend);
+    const broadcastResult = await gmailService.sendBroadcast(req.user.googleTokens.refresh_token, readyToSend);
 
     const response = {
       success: true,
