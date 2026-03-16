@@ -4,16 +4,16 @@ const { generateEmail, improveEmail, broadcastEmails, previewBroadcast } = requi
 const auth = require('../middleware/auth');
 const { requirePremium } = require('../middleware/subscription');
 
-// Generate email from prompt
 router.post('/generate', auth, requirePremium, generateEmail);
-
-// Improve existing email
 router.post('/improve', auth, requirePremium, improveEmail);
 
-// ✅ Smart Broadcast — generate + send personalized bulk emails
-router.post('/broadcast', auth, broadcastEmails);
+// ✅ Debug middleware added here
+router.post('/broadcast', auth, (req, res, next) => {
+  console.log('👤 USER:', req.user?.email || 'NULL');
+  console.log('🔑 REFRESH TOKEN:', req.user?.googleTokens?.refresh_token ? 'EXISTS' : 'MISSING');
+  next();
+}, broadcastEmails);
 
-// ✅ Preview personalized emails before sending
 router.post('/broadcast/preview', auth, previewBroadcast);
 
 module.exports = router;

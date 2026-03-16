@@ -64,7 +64,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // =====================
 // Session (before Passport)
 // =====================
-const MongoStore = require('connect-mongo').default ?? require('connect-mongo');
+const { MongoStore } = require('connect-mongo');
 
 
 
