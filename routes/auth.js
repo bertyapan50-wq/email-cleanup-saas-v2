@@ -52,7 +52,7 @@ router.get('/google', passport.authenticate('google', {
     'https://www.googleapis.com/auth/gmail.readonly'
     
   ],
-access_type: 'offline',
+accessType: 'offline',
   prompt: 'consent'         // ✅ CRITICAL - Forces consent screen
 }));
 
