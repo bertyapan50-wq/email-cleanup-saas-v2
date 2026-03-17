@@ -140,6 +140,7 @@ const broadcastEmails = async (req, res) => {
     };
 
     const toneGuide = toneGuides[tone] || toneGuides.professional;
+    const senderName = req.user?.name || req.user?.email?.split('@')[0] || 'The Team'; // ← DAGDAG
 
     console.log(`🧠 Personalizing emails for ${recipients.length} recipients...`);
 
@@ -163,7 +164,9 @@ Rules:
 - Do NOT add any notes, explanations, or meta-commentary after the email.
 - End the email naturally with a sign-off. Do not add anything after it.
 - Never use placeholders like [platform], [industry], or [field]. Use actual specific details from the context provided, or write naturally without them.
-- For the sign-off, use "${req.user.name}" as the sender name.`;
+- NEVER use placeholders like [Your Name], [platform], [company], [industry]
+- Sign off must ALWAYS be the real name: ${req.user?.name || req.user?.email?.split('@')[0] || 'The Team'}
+- Do not use brackets [] anywhere in the email.`;
 
       const userPrompt = `Write a personalized email to ${recipientName} (${email}).
 ${recipientContext ? `About this person: ${recipientContext}` : ''}
@@ -249,11 +252,18 @@ const previewBroadcast = async (req, res) => {
       const { email, name, context: recipientContext } = recipient;
       const recipientName = name || email.split('@')[0];
 
-      const systemPrompt = `You are an expert email writer. Write a ${toneGuide} email.
+      const senderName = req.user?.name || req.user?.email?.split('@')[0] || 'The Team';
+
+const systemPrompt = `You are an expert email writer. Write a ${toneGuide} email.
 Always output in this exact format:
 Subject: [subject here]
 [blank line]
-[email body here]`;
+[email body here]
+
+Rules:
+- NEVER use placeholders like [Your Name], [platform], [company], [industry]
+- Sign off must ALWAYS be: ${senderName}
+- Do not use brackets [] anywhere in the email.`;
 
       const userPrompt = `Write a personalized email to ${recipientName} (${email}).
 ${recipientContext ? `About this person: ${recipientContext}` : ''}
