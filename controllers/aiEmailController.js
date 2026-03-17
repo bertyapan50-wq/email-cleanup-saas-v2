@@ -121,9 +121,9 @@ const broadcastEmails = async (req, res) => {
     if (!basePrompt) {
       return res.status(400).json({ success: false, error: 'Base prompt/message is required' });
     }
-    if (recipients.length > 50) {
-      return res.status(400).json({ success: false, error: 'Maximum 50 recipients per broadcast' });
-    }
+    if (recipients.length > 100) {
+  return res.status(400).json({ error: 'Maximum 100 recipients per broadcast' });
+}
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ success: false, error: 'AI service not configured' });
     }

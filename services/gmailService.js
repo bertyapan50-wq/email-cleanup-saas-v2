@@ -250,9 +250,10 @@ if (!tokens || !tokens.refresh_token) {
   }
 
   // ✅ Send broadcast emails in batches with delay to avoid rate limits
-  async sendBroadcast(refreshToken, emails, delayMs = 1000) {
+  // ✅ BAGO
+async sendBroadcast(refreshToken, emails, delayMs = 500) {
     const results = [];
-    const batchSize = 5;
+    const batchSize = 10;
 
     for (let i = 0; i < emails.length; i += batchSize) {
       const batch = emails.slice(i, i + batchSize);
