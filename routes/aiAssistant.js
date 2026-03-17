@@ -70,7 +70,7 @@ const detectIntent = (message) => {
 // =====================
 router.post('/chat', protect, async (req, res) => {
   try {
-    const { message, emailContext, conversationHistory = [] } = req.body;
+    const { message, emailContext, conversationHistory = [], writingStyle = 'Professional' } = req.body;
 
     if (!message) {
       return res.status(400).json({ success: false, error: 'Message is required' });
@@ -108,7 +108,15 @@ ${recentEmailLines || 'No recent emails available.'}
     `.trim();
 
     // ✅ FIX: System prompt now uses LOWERCASE action types to match frontend
-    const systemPrompt = `You are InboxDetox AI, a smart email assistant for the InboxDetox app. You help users manage and clean their Gmail inbox.
+    const styleGuide = {
+  Professional: 'Use formal, clear, and structured language.',
+  Friendly: 'Use warm, approachable, and encouraging language.',
+  Concise: 'Use short, direct responses. Bullet points preferred. No fluff.',
+  Casual: 'Use relaxed, conversational language with occasional emojis.'
+};
+
+const systemPrompt = `You are InboxDetox AI, a smart email assistant for the InboxDetox app. You help users manage and clean their Gmail inbox.
+Writing style instruction: ${styleGuide[writingStyle] || styleGuide.Professional}
 
 ${emailSummary}
 
