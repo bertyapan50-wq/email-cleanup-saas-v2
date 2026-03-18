@@ -294,7 +294,10 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     if (secret && signature) {
       const hmac = crypto.createHmac('sha256', secret);
-      const digest = hmac.update(req.body).digest('hex');
+const rawBody = typeof req.body === 'string' 
+  ? req.body 
+  : JSON.stringify(req.body);
+const digest = hmac.update(rawBody).digest('hex');
 
       if (digest !== signature) {
         logger.error('❌ LS Webhook signature mismatch');
