@@ -57,6 +57,7 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '10mb' }));
+const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -109,9 +110,9 @@ app.use((req, res, next) => {
 // =====================
 // Routes
 // =====================
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/beta', require('./routes/beta'));
-app.use('/api/email', require('./routes/email'));  // ← DAGDAG MO ITO!
+app.use('/api/email', apiLimiter, require('./routes/email'));  // ← DAGDAG MO ITO!
 app.use('/api/filters', require('./routes/filters'));
 app.use('/api/labels', require('./routes/labels'));
 app.use('/api/followups', require('./routes/followups'));
