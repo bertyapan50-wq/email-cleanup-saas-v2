@@ -149,41 +149,47 @@ router.post('/create-checkout', protect, async (req, res) => {
     logger.info(`🛒 Creating checkout — Store: ${LS_STORE_ID} | Variant: ${variantId} | Cycle: ${billingCycle} | User: ${user.email}`);
 
     // Build checkout payload
-    const checkoutPayload = {
-      data: {
-        type: 'checkouts',
-        attributes: {
-          checkout_options: {
-            embed: false,
-            media: false,
-            logo: true
-          },
-          checkout_data: {
-            email: user.email,
-            name: user.name,
-            custom: {
-              userId: user._id.toString(),
-              googleId: user.googleId || '',
-              billingCycle,
-              plan: 'pro'
-            }
-          },
-          expires_at: null,
-          preview: false,
-          // ✅ FIX: Don't auto-detect test_mode from API key — set it explicitly via env var
-          // Using wrong test_mode causes store/variant 404 if IDs are from the other environment
-          test_mode: process.env.LEMONSQUEEZY_TEST_MODE === 'true'
-        },
-        relationships: {
-          store: {
-            data: { type: 'stores', id: String(LS_STORE_ID) }
-          },
-          variant: {
-            data: { type: 'variants', id: String(variantId) }
-          }
+    // routes/lemonsqueezy.js — inside create-checkout, update checkoutPayload
+
+const checkoutPayload = {
+  data: {
+    type: 'checkouts',
+    attributes: {
+      checkout_options: {
+        embed: false,
+        media: false,
+        logo: true
+      },
+      // ✅ ADD THIS — LemonSqueezy requires redirect_url or their JS crashes
+      product_options: {
+        redirect_url: `${process.env.FRONTEND_URL}/subscription/success`,
+        receipt_link_url: `${process.env.FRONTEND_URL}/subscription/success`,
+        receipt_thank_you_note: 'Thank you for subscribing to InboxDetox!'
+      },
+      checkout_data: {
+        email: user.email,
+        name: user.name,
+        custom: {
+          userId: user._id.toString(),
+          googleId: user.googleId || '',
+          billingCycle,
+          plan: 'pro'
         }
+      },
+      expires_at: null,
+      preview: false,
+      test_mode: process.env.LEMONSQUEEZY_TEST_MODE === 'true'
+    },
+    relationships: {
+      store: {
+        data: { type: 'stores', id: String(LS_STORE_ID) }
+      },
+      variant: {
+        data: { type: 'variants', id: String(variantId) }
       }
-    };
+    }
+  }
+};
 
     const checkout = await lsRequest('POST', '/checkouts', checkoutPayload);
     const checkoutUrl = checkout.data?.attributes?.url;

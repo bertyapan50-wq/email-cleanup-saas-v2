@@ -59,6 +59,7 @@ router.delete('/:id', protect, async (req, res) => {
 // RUN rules against inbox
 router.post('/run', protect, async (req, res) => {
   try {
+    const { writingStyle = 'Professional', instructions = '' } = req.body;
     const rules = await AutoRule.find({ userId: req.user._id, enabled: true });
     if (rules.length === 0) {
       return res.json({ success: true, processed: 0, message: 'No active rules' });
