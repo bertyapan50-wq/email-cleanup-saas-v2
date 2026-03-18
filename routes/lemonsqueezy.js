@@ -289,13 +289,32 @@ router.post('/cancel', protect, async (req, res) => {
 // =====================
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
-    // TEMPORARILY SKIP SIGNATURE CHECK
-    const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body));
-    const payload = JSON.parse(rawBody.toString());
+    const secret = LS_WEBHOOK_SECRET;
+    const signature = req.headers['x-signature'];
+
+    // ✅ RESTORED SIGNATURE CHECK — proper raw body handling
+    if (secret && signature) {
+      const rawBody = Buffer.isBuffer(req.body) 
+        ? req.body 
+        : Buffer.from(JSON.stringify(req.body));
+      
+      const hmac = crypto.createHmac('sha256', secret);
+      const digest = hmac.update(rawBody).digest('hex');
+
+      if (digest !== signature) {
+        logger.error('❌ LS Webhook signature mismatch');
+        return res.status(401).json({ error: 'Invalid signature' });
+      }
+    }
+
+    const rawBody2 = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body));
+    const payload = JSON.parse(rawBody2.toString());
     const eventName = payload.meta?.event_name;
     const customData = payload.meta?.custom_data || {};
 
     logger.info(`📦 LS Webhook received: ${eventName}`);
+
+    // ORDER CREATED...
     
     // =====================
     // ORDER CREATED
