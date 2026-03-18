@@ -13,6 +13,8 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 const app = express();
+// ✅ ADD THIS — para sa Railway/Heroku reverse proxy
+app.set('trust proxy', 1);
 
 // =====================
 // Connect to database
