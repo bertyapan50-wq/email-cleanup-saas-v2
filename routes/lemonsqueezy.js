@@ -296,11 +296,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     const customData = payload.meta?.custom_data || {};
 
     logger.info(`📦 LS Webhook received: ${eventName}`);
-    const eventName = payload.meta?.event_name;
-    const customData = payload.meta?.custom_data || {};
-
-    logger.info(`📦 LS Webhook received: ${eventName}`);
-
+    
     // =====================
     // ORDER CREATED
     // =====================
