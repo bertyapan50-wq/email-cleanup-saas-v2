@@ -72,7 +72,7 @@ const MongoStore = require('connect-mongo').default ?? require('connect-mongo');
 
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'gmail_cleanup_secret_key',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   name: 'connect.sid',
