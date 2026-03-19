@@ -40,7 +40,7 @@
 [33m2e2530d[m fix: railpack config
 [33mb5aa042[m initial commit
 [33m0b7f047[m Add requirePremium to AI email routes
-[33m6dda678[m update CORS for InboxDetox
+[33m6dda678[m update CORS for Zentrox
 [33m08db639[m remove unused dependencies
 [33me217ad0[m fix: create new OAuth2 instance in getGmailClient
 [33md06b1eb[m fix: use actual sender name in email sign-off
