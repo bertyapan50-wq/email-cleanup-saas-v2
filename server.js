@@ -53,8 +53,8 @@ app.use(helmet());
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://inboxdetox.netlify.app']
-    : ['http://localhost:3000', 'https://inboxdetox.netlify.app'],
+    ? ['https://zentrox-ai.netlify.app']
+    : ['http://localhost:3000', 'https://zentrox-ai.netlify.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

@@ -314,9 +314,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     logger.info(`📦 LS Webhook received: ${eventName}`);
 
-    // ORDER CREATED...
     
-    // =====================
     // ORDER CREATED
     // =====================
     if (eventName === 'order_created') {
@@ -370,7 +368,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         currency: 'USD',
         status: 'paid',
         invoiceNumber,
-        description: `InboxDetox Pro - ${billingCycle === 'annual' ? 'Annual' : 'Monthly'} Subscription`,
+        description: `Zentrox Pro - ${billingCycle === 'annual' ? 'Annual' : 'Monthly'} Subscription`,
         method: 'lemonsqueezy',
         billingCycle
       });
