@@ -13,7 +13,7 @@ router.post('/generate', protect, referralController.generateReferralCode);
 // NEW ROUTES - Sustainable Referral System
 router.get('/info', protect, referralController.getReferralInfo);
 router.post('/signup', referralController.trackReferralSignup);
-router.post('/activate', referralController.activateReferral);
+router.post('/activate', protect, referralController.activateReferral);
 router.post('/claim/:referralId', protect, referralController.claimReward);
 
 // OLD ROUTES - Kept for backward compatibility
