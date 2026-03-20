@@ -83,13 +83,28 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.getGoogleAuthUrl = (req, res) =>
-  res.json({ success: true, url: getAuthUrl() });
+exports.getGoogleAuthUrl = (req, res) => {
+  const refCode = req.query.ref || null;
+
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/gmail.readonly',
+      'https://www.googleapis.com/auth/gmail.modify',
+    ],
+    prompt: 'consent',
+    state: JSON.stringify({ ref: refCode })
+  });
+
+  res.redirect(authUrl);
+};
 
 // ✅ UPDATED GOOGLE CALLBACK - Now saves ConnectedAccount
 exports.googleCallback = async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
     const { tokens } = await oauth2Client.getToken(code);
 
     oauth2Client.setCredentials(tokens);
@@ -97,7 +112,19 @@ exports.googleCallback = async (req, res) => {
     const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
     const { data } = await oauth2.userinfo.get();
 
+   // ✅ Parse ref from state
+    let refCode = null;
+    try {
+      if (state) {
+        const stateData = JSON.parse(state);
+        refCode = stateData.ref || null;
+      }
+    } catch (e) {
+      logger.warn('Invalid state parameter:', state);
+    }
+
     let user = await User.findOne({ email: data.email });
+    const isNewUser = !user;
 
     if (!user) {
       const referralCode = await User.generateUniqueReferralCode();
@@ -116,13 +143,38 @@ exports.googleCallback = async (req, res) => {
           expiry_date: tokens.expiry_date
         }
       });
+    }
 
-      // ✅ UPDATE PENDING REFERRAL
-      await Referral.findOneAndUpdate(
-        { referredEmail: data.email, status: 'pending', referredUserId: null },
-        { referredUserId: user._id, signedUpAt: new Date() }
-      );
-    } else {
+    // ✅ Track referral if new user and has ref code
+    if (isNewUser && refCode) {
+      const referrer = await User.findOne({ referralCode: refCode });
+
+      if (referrer && referrer._id.toString() !== user._id.toString()) {
+        const existingReferral = await Referral.findOne({
+          $or: [
+            { referredUserId: user._id },
+            { referredEmail: data.email }
+          ]
+        });
+
+        if (!existingReferral) {
+          await Referral.create({
+            referrerId: referrer._id,
+            referredUserId: user._id,
+            referredEmail: data.email,
+            status: 'pending',
+            signedUpAt: new Date()
+          });
+
+          user.referredBy = refCode;
+          await user.save();
+
+          logger.info(`✅ Referral tracked: ${data.email} referred by ${refCode}`);
+        }
+      }
+    }
+
+    if (!isNewUser) {
       user.refreshToken = tokens.refresh_token || user.refreshToken;
       user.googleTokens = {
         access_token: tokens.access_token,
@@ -184,7 +236,7 @@ exports.googleCallback = async (req, res) => {
     const token = generateToken(user._id);
     
     // ✅ CORRECT: Pass token in URL
-const frontendUrl = process.env.FRONTEND_URL || 'https://gmail-cleanup-ai.netlify.app';
+const frontendUrl = process.env.FRONTEND_URL || 'https://zentrox-ai.netlify.app';
 res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     
   } catch (error) {
