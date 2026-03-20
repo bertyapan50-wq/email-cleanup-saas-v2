@@ -43,18 +43,21 @@ access_token: user.googleTokens?.access_token,
 
 // ================================
 // Google OAuth login
-router.get('/google', passport.authenticate('google', {
-  scope: [
-    'profile',
-    'email', 
-     'https://mail.google.com/',  // ✅ FULL ACCESS
-    'https://www.googleapis.com/auth/gmail.modify',
-    'https://www.googleapis.com/auth/gmail.readonly'
-    
-  ],
-accessType: 'offline',
-  prompt: 'consent'         // ✅ CRITICAL - Forces consent screen
-}));
+router.get('/google', (req, res, next) => {
+  const refCode = req.query.ref || null;
+  passport.authenticate('google', {
+    scope: [
+      'profile',
+      'email',
+      'https://mail.google.com/',
+      'https://www.googleapis.com/auth/gmail.modify',
+      'https://www.googleapis.com/auth/gmail.readonly'
+    ],
+    accessType: 'offline',
+    prompt: 'consent',
+    state: refCode ? JSON.stringify({ ref: refCode }) : undefined
+  })(req, res, next);
+});
 
 // ================================
 // Google OAuth callback
@@ -62,9 +65,55 @@ accessType: 'offline',
 router.get(
   '/google/callback',
   passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}` }),
-  (req, res) => {
+  async (req, res) => {
     console.log('✅ OAuth successful, user logged in:', req.user.email);
-    console.log('🔑 User GoogleId:', req.user.googleId); // ✅ Check if this logs
+
+    try {
+      // ✅ Parse ref from state
+      let refCode = null;
+      const stateParam = req.query.state;
+      if (stateParam) {
+        const stateData = JSON.parse(stateParam);
+        refCode = stateData.ref || null;
+      }
+
+      console.log('🔗 Ref code from state:', refCode);
+
+      // ✅ Track referral if ref code exists
+      if (refCode) {
+        const User = require('../models/User');
+        const Referral = require('../models/Referral');
+
+        const referrer = await User.findOne({ referralCode: refCode });
+
+        if (referrer && referrer._id.toString() !== req.user._id.toString()) {
+          const existingReferral = await Referral.findOne({
+            $or: [
+              { referredUserId: req.user._id },
+              { referredEmail: req.user.email }
+            ]
+          });
+
+          if (!existingReferral) {
+            await Referral.create({
+              referrerId: referrer._id,
+              referredUserId: req.user._id,
+              referredEmail: req.user.email,
+              status: 'pending',
+              signedUpAt: new Date()
+            });
+
+            // Update referredBy
+            await User.findByIdAndUpdate(req.user._id, { referredBy: refCode });
+
+            console.log(`✅ Referral tracked: ${req.user.email} referred by ${refCode}`);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('❌ Referral tracking error:', err);
+    }
+
     res.redirect(`${process.env.FRONTEND_URL}?auth=success`);
   }
 );
