@@ -175,8 +175,8 @@ exports.activateReferral = async (req, res) => {
     // Add credits to referrer (max $50/year = 5000 cents)
     const referrer = await User.findById(referral.referrerId);
     const currentYearCredits = await calculateYearlyCredits(referral.referrerId);
-    const maxYearlyCredits = 5000; // $50 in cents
-    const creditAmount = 200; // $2 in cents
+    const maxYearlyCredits = 100000; // ₱1,000 in centavos
+const creditAmount = 2000; // ₱20 in centavos
 
     if (currentYearCredits + creditAmount <= maxYearlyCredits) {
       referrer.totalReferralCredits = (referrer.totalReferralCredits || 0) + creditAmount;
@@ -188,7 +188,7 @@ exports.activateReferral = async (req, res) => {
         await emailNotificationService.sendReferralReward(
           referrer.email, 
           'credit', 
-          { amount: '$2.00' }
+          { amount: '₱20.00' }
         );
       }
 
