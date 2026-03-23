@@ -145,13 +145,13 @@ exports.checkCleanupQuota = async (req, res, next) => {
     }
 
     const now = new Date();
-    const lastReset = user.lastCleanupReset || now;
-    const daysSinceReset = (now - lastReset) / (1000 * 60 * 60 * 24);
+const lastReset = new Date(user.lastCleanupReset || now);
 
-    if (daysSinceReset >= 30) {
-      user.freeCleanupCount = 3;
-      user.lastCleanupReset = now;
-      await user.save();
+if (now.getMonth() !== lastReset.getMonth() || 
+    now.getFullYear() !== lastReset.getFullYear()) {
+  user.freeCleanupCount = 3;
+  user.lastCleanupReset = now;
+  await user.save();
       logger.info(`🔄 Reset cleanup quota for ${user.email}`);
     }
 

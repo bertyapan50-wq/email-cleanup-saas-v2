@@ -86,8 +86,8 @@ async function activateUserReferral(userId) {
     }
 
     const currentYearCredits = await calculateYearlyCredits(referral.referrerId);
-    const maxYearlyCredits = 5000; // $50 in cents
-    const creditAmount = 200; // $2 in cents
+    const maxYearlyCredits = 100000; // ₱1,000 in centavos (₱20 × 50 referrals)
+const creditAmount = 2000; // ₱20 in centavos
 
     if (currentYearCredits + creditAmount <= maxYearlyCredits) {
       referrer.totalReferralCredits = (referrer.totalReferralCredits || 0) + creditAmount;
