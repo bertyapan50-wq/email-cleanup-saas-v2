@@ -236,7 +236,7 @@ exports.googleCallback = async (req, res) => {
     const token = generateToken(user._id);
     
     // ✅ CORRECT: Pass token in URL
-const frontendUrl = process.env.FRONTEND_URL || 'https://zentrox-ai.netlify.app';
+const frontendUrl = process.env.FRONTEND_URL || 'https://zentroxai.com';
 res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     
   } catch (error) {
