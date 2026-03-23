@@ -53,8 +53,8 @@ app.use(helmet());
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://zentrox-ai.netlify.app']
-    : ['http://localhost:3000', 'https://zentrox-ai.netlify.app'],
+    ? ['https://zentroxai.com']
+    : ['http://localhost:3000', 'https://zentroxai.com'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
