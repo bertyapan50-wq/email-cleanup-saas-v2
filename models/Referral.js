@@ -33,7 +33,7 @@ const referralSchema = new mongoose.Schema({
   // Reward amount in cents ($2.00 = 200 cents)
   rewardAmount: {
     type: Number,
-    default: 200
+    default: 2000
   },
   
   // Whether the reward has been claimed

@@ -115,7 +115,7 @@ ${recentEmailLines || 'No recent emails available.'}
   Casual: 'Use relaxed, conversational language with occasional emojis.'
 };
 
-const systemPrompt = `You are InboxDetox AI, a smart email assistant for the InboxDetox app. You help users manage and clean their Gmail inbox.
+const systemPrompt = `You are Zentrox AI, a smart email assistant for the Zentrox app. You help users manage and clean their Gmail inbox.
 Writing style instruction: ${styleGuide[writingStyle] || styleGuide.Professional}
 
 ${emailSummary}
