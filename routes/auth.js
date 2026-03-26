@@ -51,7 +51,9 @@ router.get('/google', (req, res, next) => {
       'email',
       'https://mail.google.com/',
       'https://www.googleapis.com/auth/gmail.modify',
-      'https://www.googleapis.com/auth/gmail.readonly'
+    'https://www.googleapis.com/auth/gmail.readonly',
+       'https://www.googleapis.com/auth/gmail.settings.basic'
+    
     ],
     accessType: 'offline',
     prompt: 'consent',

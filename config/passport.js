@@ -17,8 +17,10 @@ passport.use(
   'profile',
   'email',
   'https://mail.google.com/',  // ✅ FULL GMAIL ACCESS (includes delete)
+   'https://www.googleapis.com/auth/gmail.modify',
+  'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/gmail.settings.basic',
-  'https://www.googleapis.com/auth/gmail.settings.filters'
+
 ]
     },
     async (req, accessToken, refreshToken, params, profile, done) => {
