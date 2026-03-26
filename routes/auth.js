@@ -47,14 +47,14 @@ router.get('/google', (req, res, next) => {
   const refCode = req.query.ref || null;
   passport.authenticate('google', {
     scope: [
-      'profile',
-      'email',
-      'https://mail.google.com/',
-      'https://www.googleapis.com/auth/gmail.modify',
-    'https://www.googleapis.com/auth/gmail.readonly',
-       'https://www.googleapis.com/auth/gmail.settings.basic'
-    
-    ],
+  'profile',
+  'email',
+  'https://www.googleapis.com/auth/gmail.modify',
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/gmail.settings.basic'
+],
+
     accessType: 'offline',
     prompt: 'consent',
     state: refCode ? JSON.stringify({ ref: refCode }) : undefined
