@@ -207,18 +207,17 @@ cron.schedule('0 0 * * *', async () => {
 // Server Start
 // =====================
 const PORT = process.env.PORT || 5000;
-console.log("🚀 ABOUT TO LISTEN ON PORT:", PORT);
 
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  
-  // ✅ Start email cleanup scheduler (ONLY ONCE)
-  try {
-    const schedulerService = require('./services/schedulerService');
-    schedulerService.start();
-    console.log('✅ Email cleanup scheduler initialized successfully');
-  } catch (error) {
-    console.error('❌ Failed to start scheduler:', error.message);
-    console.log('⚠️ Server will continue without auto-cleanup scheduler');
-  }
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+    try {
+      const schedulerService = require('./services/schedulerService');
+      schedulerService.start();
+    } catch (error) {
+      console.error('❌ Failed to start scheduler:', error.message);
+    }
+  });
+}
+
+module.exports = app;
